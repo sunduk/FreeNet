@@ -65,8 +65,8 @@ namespace FreeNet
 
 		public byte pop_byte()
 		{
-			byte data = (byte)BitConverter.ToInt16(this.buffer, this.position);
-			this.position += sizeof(byte);
+            byte data = this.buffer[this.position];
+            this.position += sizeof(byte);
 			return data;
 		}
 
@@ -96,6 +96,13 @@ namespace FreeNet
 
 			return data;
 		}
+
+        public float pop_float()
+        {
+            float data = BitConverter.ToSingle(this.buffer, this.position);
+            this.position += sizeof(float);
+            return data;
+        }
 
 
 
@@ -157,5 +164,12 @@ namespace FreeNet
 			temp_buffer.CopyTo(this.buffer, this.position);
 			this.position += temp_buffer.Length;
 		}
+
+        public void push(float data)
+        {
+            byte[] temp_buffer = BitConverter.GetBytes(data);
+            temp_buffer.CopyTo(this.buffer, this.position);
+            this.position += temp_buffer.Length;
+        }
 	}
 }

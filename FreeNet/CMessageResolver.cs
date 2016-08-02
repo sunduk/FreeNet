@@ -19,7 +19,7 @@ namespace FreeNet
 	/// </summary>
 	class CMessageResolver
 	{
-		public delegate void CompletedMessageCallback(Const<byte[]> buffer);
+		public delegate void CompletedMessageCallback(Const<byte[]> buffer, int size);
 
 		// 메시지 사이즈.
 		int message_size;
@@ -142,7 +142,7 @@ namespace FreeNet
 				if (completed)
 				{
 					// 패킷 하나를 완성 했다.
-					callback(new Const<byte[]>(this.message_buffer));
+					callback(new Const<byte[]>(this.message_buffer), this.position_to_read);
 
 					clear_buffer();
 				}

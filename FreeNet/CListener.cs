@@ -116,6 +116,7 @@ namespace FreeNet
             {
                 // 새로 생긴 소켓을 보관해 놓은뒤~
                 Socket client_socket = e.AcceptSocket;
+                client_socket.NoDelay = true;
 
                 // 다음 연결을 받아들인다.
                 this.flow_control_event.Set();

@@ -30,6 +30,7 @@ namespace FreeNet
 		public void connect(IPEndPoint remote_endpoint)
 		{
 			this.client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            this.client.NoDelay = true;
 
 			// 비동기 접속을 위한 event args.
 			SocketAsyncEventArgs event_arg = new SocketAsyncEventArgs();

@@ -22,13 +22,13 @@ namespace CSampleServer
 			this.token.set_peer(this);
 		}
 
-		void IPeer.on_message(Const<byte[]> buffer)
+		void IPeer.on_message(byte[] buffer)
 		{
 			// ex)
-			CPacket msg = new CPacket(buffer.Value, this);
+			CPacket msg = new CPacket(buffer, this);
 			PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
-			Console.WriteLine("------------------------------------------------------");
-			Console.WriteLine("protocol id " + protocol);
+			//Console.WriteLine("------------------------------------------------------");
+			//Console.WriteLine("protocol id " + protocol);
 			switch (protocol)
 			{
 				case PROTOCOL.CHAT_MSG_REQ:

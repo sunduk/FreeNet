@@ -56,11 +56,14 @@ namespace FreeNet
 			this.message_resolver.on_receive(buffer, offset, transfered, on_message);
 		}
 
-		void on_message(Const<byte[]> buffer)
+		void on_message(Const<byte[]> buffer, int size)
 		{
 			if (this.peer != null)
 			{
-				this.peer.on_message(buffer);
+                byte[] app_buffer = new byte[size];
+                Array.Copy(buffer.Value, app_buffer, size);
+
+                this.peer.on_message(app_buffer);
 			}
 		}
 
@@ -169,7 +172,7 @@ namespace FreeNet
 				lock (cs_count)
 				{
 					++sent_count;
-					//if (sent_count % 20000 == 0)
+					if (sent_count % 20000 == 0)
 					{
 						Console.WriteLine(string.Format("process send : {0}, transferred {1}, sent count {2}",
 							e.SocketError, e.BytesTransferred, sent_count));

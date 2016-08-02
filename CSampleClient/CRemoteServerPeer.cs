@@ -19,9 +19,9 @@ namespace CSampleClient
 			this.token.set_peer(this);
 		}
 
-		void IPeer.on_message(Const<byte[]> buffer)
+		void IPeer.on_message(byte[ ]buffer)
 		{
-			CPacket msg = new CPacket(buffer.Value, this);
+			CPacket msg = new CPacket(buffer, this);
 			PROTOCOL protocol_id = (PROTOCOL)msg.pop_protocol_id();
 			switch (protocol_id)
 			{
