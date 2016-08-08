@@ -119,8 +119,8 @@ namespace FreeNet
 
 		public void record_size()
 		{
-			Int16 body_size = (Int16)(this.position - Defines.HEADERSIZE);
-			byte[] header = BitConverter.GetBytes(body_size);
+            // header + body 를 합한 사이즈를 입력한다.
+            byte[] header = BitConverter.GetBytes(this.position);
 			header.CopyTo(this.buffer, 0);
 		}
 

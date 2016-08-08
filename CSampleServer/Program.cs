@@ -21,7 +21,7 @@ namespace CSampleServer
 			service.session_created_callback += on_session_created;
 			// 초기화.
 			service.initialize();
-			service.listen("0.0.0.0", 7979, 100);
+			service.listen("0.0.0.0", 7979, 1000);
 
 
 			Console.WriteLine("Started!");
@@ -41,19 +41,19 @@ namespace CSampleServer
 		/// <returns></returns>
 		static void on_session_created(CUserToken token)
 		{
-			CGameUser user = new CGameUser(token);
-			lock (userlist)
-			{
-				userlist.Add(user);
-			}
-		}
+            CGameUser user = new CGameUser(token);
+            lock (userlist)
+            {
+                userlist.Add(user);
+            }
+        }
 
 		public static void remove_user(CGameUser user)
 		{
-			lock (userlist)
-			{
-				userlist.Remove(user);
-			}
-		}
+            lock (userlist)
+            {
+                userlist.Remove(user);
+            }
+        }
 	}
 }

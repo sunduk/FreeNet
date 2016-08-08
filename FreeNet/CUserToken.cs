@@ -20,7 +20,7 @@ namespace FreeNet
 		IPeer peer;
 
 		// 전송할 패킷을 보관해놓는 큐. 1-Send로 처리하기 위한 큐이다.
-		Queue<CPacket> sending_queue;
+		Queue<ArraySegment<byte>> sending_queue;
 		// sending_queue lock처리에 사용되는 객체.
 		private object cs_sending_queue;
 
@@ -30,7 +30,7 @@ namespace FreeNet
 
 			this.message_resolver = new CMessageResolver();
 			this.peer = null;
-			this.sending_queue = new Queue<CPacket>();
+            this.sending_queue = new Queue<ArraySegment<byte>>();
 		}
 
 		public void set_peer(IPeer peer)
@@ -56,19 +56,17 @@ namespace FreeNet
 			this.message_resolver.on_receive(buffer, offset, transfered, on_message);
 		}
 
-		void on_message(Const<byte[]> buffer, int size)
+		void on_message(ArraySegment<byte> buffer)
 		{
 			if (this.peer != null)
 			{
-                byte[] app_buffer = new byte[size];
-                Array.Copy(buffer.Value, app_buffer, size);
-
-                this.peer.on_message(app_buffer);
+                this.peer.on_message(buffer);
 			}
 		}
 
 		public void on_removed()
 		{
+            //todo:send매소드와 호출 시점이 겹치면 큐가 깨질듯!!
 			this.sending_queue.Clear();
 
 			if (this.peer != null)
@@ -86,52 +84,40 @@ namespace FreeNet
 		///		현재 진행중인 SendAsync가 완료되었을 때 큐를 검사하여 나머지 패킷을 전송한다.
 		/// </summary>
 		/// <param name="msg"></param>
-		public void send(CPacket msg)
+		public void send(ArraySegment<byte> data)
 		{
-			CPacket clone = new CPacket();
-			msg.copy_to(clone);
-
 			lock (this.cs_sending_queue)
-			{
-				// 큐가 비어 있다면 큐에 추가하고 바로 비동기 전송 매소드를 호출한다.
-				if (this.sending_queue.Count <= 0)
-				{
-					this.sending_queue.Enqueue(clone);
-					start_send();
-					return;
-				}
+            {
+                this.sending_queue.Enqueue(data);
+            }
 
-				// 큐에 무언가가 들어 있다면 아직 이전 전송이 완료되지 않은 상태이므로 큐에 추가만 하고 리턴한다.
-				// 현재 수행중인 SendAsync가 완료된 이후에 큐를 검사하여 데이터가 있으면 SendAsync를 호출하여 전송해줄 것이다.
-				Console.WriteLine("Queue is not empty. Copy and Enqueue a msg. protocol id : " + msg.protocol_id);
-				this.sending_queue.Enqueue(clone);
+            if (this.sending_queue.Count > 1)
+			{
+                // 큐에 무언가가 들어 있다면 아직 이전 전송이 완료되지 않은 상태이므로 큐에 추가만 하고 리턴한다.
+                // 현재 수행중인 SendAsync가 완료된 이후에 큐를 검사하여 데이터가 있으면 SendAsync를 호출하여 전송해줄 것이다.
+                //Console.WriteLine("Queue is not empty. Copy and Enqueue a msg. protocol id : " + msg.protocol_id);
+                return;
 			}
-		}
+
+            start_send();
+        }
 
 		/// <summary>
 		/// 비동기 전송을 시작한다.
 		/// </summary>
 		void start_send()
 		{
-			lock (this.cs_sending_queue)
+			// 전송이 아직 완료된 상태가 아니므로 데이터만 가져오고 큐에서 제거하진 않는다.
+			ArraySegment<byte> data = this.sending_queue.Peek();
+
+			// 이번에 보낼 패킷 사이즈 만큼 버퍼 크기를 설정하고
+			this.send_event_args.SetBuffer(data.Array, 0, data.Count);
+
+			// 비동기 전송 시작.
+			bool pending = this.socket.SendAsync(this.send_event_args);
+			if (!pending)
 			{
-				// 전송이 아직 완료된 상태가 아니므로 데이터만 가져오고 큐에서 제거하진 않는다.
-				CPacket msg = this.sending_queue.Peek();
-
-				// 헤더에 패킷 사이즈를 기록한다.
-				msg.record_size();
-
-				// 이번에 보낼 패킷 사이즈 만큼 버퍼 크기를 설정하고
-				this.send_event_args.SetBuffer(this.send_event_args.Offset, msg.position);
-				// 패킷 내용을 SocketAsyncEventArgs버퍼에 복사한다.
-				Array.Copy(msg.buffer, 0, this.send_event_args.Buffer, this.send_event_args.Offset, msg.position);
-
-				// 비동기 전송 시작.
-				bool pending = this.socket.SendAsync(this.send_event_args);
-				if (!pending)
-				{
-					process_send(this.send_event_args);
-				}
+				process_send(this.send_event_args);
 			}
 		}
 
@@ -159,7 +145,7 @@ namespace FreeNet
 
 				//todo:재전송 로직 다시 검토~~ 테스트 안해봤음.
 				// 패킷 하나를 다 못보낸 경우는??
-				int size = this.sending_queue.Peek().position;
+				int size = this.sending_queue.Peek().Count;
 				if (e.BytesTransferred != size)
 				{
 					string error = string.Format("Need to send more! transferred {0},  packet size {1}", e.BytesTransferred, size);
@@ -167,24 +153,6 @@ namespace FreeNet
 					return;
 				}
 
-
-				//System.Threading.Interlocked.Increment(ref sent_count);
-				lock (cs_count)
-				{
-					++sent_count;
-					if (sent_count % 20000 == 0)
-					{
-						Console.WriteLine(string.Format("process send : {0}, transferred {1}, sent count {2}",
-							e.SocketError, e.BytesTransferred, sent_count));
-					}
-				}
-
-				//Console.WriteLine(string.Format("process send : {0}, transferred {1}, sent count {2}",
-				//	e.SocketError, e.BytesTransferred, sent_count));
-
-				// 전송 완료된 패킷을 큐에서 제거한다.
-				//CPacket packet = this.sending_queue.Dequeue();
-				//CPacket.destroy(packet);
 				this.sending_queue.Dequeue();
 
 				// 아직 전송하지 않은 대기중인 패킷이 있다면 다시한번 전송을 요청한다.
@@ -195,17 +163,6 @@ namespace FreeNet
 			}
 		}
 
-		//void send_directly(CPacket msg)
-		//{
-		//	msg.record_size();
-		//	this.send_event_args.SetBuffer(this.send_event_args.Offset, msg.position);
-		//	Array.Copy(msg.buffer, 0, this.send_event_args.Buffer, this.send_event_args.Offset, msg.position);
-		//	bool pending = this.socket.SendAsync(this.send_event_args);
-		//	if (!pending)
-		//	{
-		//		process_send(this.send_event_args);
-		//	}
-		//}
 
 		public void disconnect()
 		{
@@ -217,16 +174,6 @@ namespace FreeNet
 			// throws if client process has already closed
 			catch (Exception) { }
 			this.socket.Close();
-		}
-
-		public void start_keepalive()
-		{
-			System.Threading.Timer keepalive = new System.Threading.Timer((object e) =>
-			{
-				CPacket msg = CPacket.create(0);
-				msg.push(0);
-				send(msg);
-			}, null, 0, 3000);
 		}
 	}
 }

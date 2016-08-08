@@ -22,11 +22,14 @@ namespace CSampleServer
 			this.token.set_peer(this);
 		}
 
-		void IPeer.on_message(byte[] buffer)
+		void IPeer.on_message(ArraySegment<byte> buffer)
 		{
-			// ex)
-			CPacket msg = new CPacket(buffer, this);
-			PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
+            //send(buffer);
+            //return;
+
+            // ex)
+            CPacket msg = new CPacket(buffer.Array, this);
+            PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
 			//Console.WriteLine("------------------------------------------------------");
 			//Console.WriteLine("protocol id " + protocol);
 			switch (protocol)
@@ -46,15 +49,21 @@ namespace CSampleServer
 
 		void IPeer.on_removed()
 		{
-			Console.WriteLine("The client disconnected.");
+			//Console.WriteLine("The client disconnected.");
 
 			Program.remove_user(this);
 		}
 
 		public void send(CPacket msg)
 		{
-			this.token.send(msg);
+            msg.record_size();
+            this.token.send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
 		}
+
+        public void send(ArraySegment<byte> data)
+        {
+            this.token.send(data);
+        }
 
 		void IPeer.disconnect()
 		{

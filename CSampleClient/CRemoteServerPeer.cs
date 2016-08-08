@@ -19,9 +19,9 @@ namespace CSampleClient
 			this.token.set_peer(this);
 		}
 
-		void IPeer.on_message(byte[ ]buffer)
+		void IPeer.on_message(ArraySegment<byte> buffer)
 		{
-			CPacket msg = new CPacket(buffer, this);
+			CPacket msg = new CPacket(buffer.Array, this);
 			PROTOCOL protocol_id = (PROTOCOL)msg.pop_protocol_id();
 			switch (protocol_id)
 			{
@@ -41,7 +41,8 @@ namespace CSampleClient
 
 		void IPeer.send(CPacket msg)
 		{
-			this.token.send(msg);
+            msg.record_size();
+			this.token.send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
 		}
 
 		void IPeer.disconnect()

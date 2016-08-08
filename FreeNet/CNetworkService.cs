@@ -131,11 +131,11 @@ namespace FreeNet
             //todo:
             // peer list처리.
 
-			Interlocked.Increment(ref this.connected_count);
+			//Interlocked.Increment(ref this.connected_count);
 
-			Console.WriteLine(string.Format("[{0}] A client connected. handle {1},  count {2}",
-				Thread.CurrentThread.ManagedThreadId, client_socket.Handle,
-				this.connected_count));
+			//Console.WriteLine(string.Format("[{0}] A client connected. handle {1},  count {2}",
+			//	Thread.CurrentThread.ManagedThreadId, client_socket.Handle,
+			//	this.connected_count));
 
 			// 플에서 하나 꺼내와 사용한다.
 			SocketAsyncEventArgs receive_args = this.receive_event_args_pool.Pop();
@@ -210,7 +210,7 @@ namespace FreeNet
 			}
 			else
 			{
-				Console.WriteLine(string.Format("error {0},  transferred {1}", e.SocketError, e.BytesTransferred));
+				//Console.WriteLine(string.Format("error {0},  transferred {1}", e.SocketError, e.BytesTransferred));
 				close_clientsocket(token);
 			}
 		}

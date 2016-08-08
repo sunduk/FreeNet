@@ -7,7 +7,7 @@ namespace FreeNet
 {
    	class Defines
 	{
-		public static readonly short HEADERSIZE = 2;
+		public static readonly short HEADERSIZE = 4;
 	}
 
 	/// <summary>
@@ -19,7 +19,7 @@ namespace FreeNet
 	/// </summary>
 	class CMessageResolver
 	{
-		public delegate void CompletedMessageCallback(Const<byte[]> buffer, int size);
+		public delegate void CompletedMessageCallback(ArraySegment<byte> buffer);
 
 		// 메시지 사이즈.
 		int message_size;
@@ -72,8 +72,8 @@ namespace FreeNet
 				copy_size = this.remain_bytes;
 			}
 
-			// 버퍼에 복사.
-			Array.Copy(buffer, src_position, this.message_buffer, this.current_position, copy_size);
+            // 버퍼에 복사.
+            Array.Copy(buffer, src_position, this.message_buffer, this.current_position, copy_size);
 
 
 			// 원본 버퍼 포지션 이동.
@@ -122,7 +122,7 @@ namespace FreeNet
 					// 목표 지점 설정(헤더 위치까지 도달하도록 설정).
 					this.position_to_read = Defines.HEADERSIZE;
 
-					completed = read_until(buffer, ref src_position, offset, transffered);
+                    completed = read_until(buffer, ref src_position, offset, transffered);
 					if (!completed)
 					{
 						// 아직 다 못읽었으므로 다음 receive를 기다린다.
@@ -130,10 +130,10 @@ namespace FreeNet
 					}
 
 					// 헤더 하나를 온전히 읽어왔으므로 메시지 사이즈를 구한다.
-					this.message_size = get_body_size();
+                    this.message_size = get_total_message_size();
 
-					// 다음 목표 지점(헤더 + 메시지 사이즈).
-					this.position_to_read = this.message_size + Defines.HEADERSIZE;
+                    // 다음 목표 지점(헤더 + 메시지 사이즈).
+                    this.position_to_read = this.message_size;
 				}
 
 				// 메시지를 읽는다.
@@ -141,25 +141,28 @@ namespace FreeNet
 
 				if (completed)
 				{
-					// 패킷 하나를 완성 했다.
-					callback(new Const<byte[]>(this.message_buffer), this.position_to_read);
+                    // 패킷 하나를 완성 했다.
+                    byte[] clone = new byte[this.position_to_read];
+                    Array.Copy(this.message_buffer, clone, this.position_to_read);
+                    callback(new ArraySegment<byte>(clone, 0, this.position_to_read));
 
 					clear_buffer();
 				}
 			}
 		}
 
-		int get_body_size()
+		int get_total_message_size()
 		{
-			// 헤더 타입의 바이트만큼을 읽어와 메시지 사이즈를 리턴한다.
+            if (Defines.HEADERSIZE == 2)
+            {
+                return BitConverter.ToInt16(this.message_buffer, 0);
+            }
+            else if (Defines.HEADERSIZE == 4)
+            {
+                return BitConverter.ToInt32(this.message_buffer, 0);
+            }
 
-			Type type = Defines.HEADERSIZE.GetType();
-			if (type.Equals(typeof(Int16)))
-			{
-				return BitConverter.ToInt16(this.message_buffer, 0);
-			}
-
-			return BitConverter.ToInt32(this.message_buffer, 0);
+            return 0;
 		}
 
 		void clear_buffer()
