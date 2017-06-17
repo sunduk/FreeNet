@@ -110,11 +110,11 @@ namespace FreeNet
 			// 전송이 아직 완료된 상태가 아니므로 데이터만 가져오고 큐에서 제거하진 않는다.
 			ArraySegment<byte> data = this.sending_queue.Peek();
 
-			// 이번에 보낼 패킷 사이즈 만큼 버퍼 크기를 설정하고
-			this.send_event_args.SetBuffer(data.Array, 0, data.Count);
+            // 이번에 보낼 패킷 사이즈 만큼 버퍼 크기를 설정하고
+            this.send_event_args.SetBuffer(data.Array, 0, data.Count);
 
-			// 비동기 전송 시작.
-			bool pending = this.socket.SendAsync(this.send_event_args);
+            // 비동기 전송 시작.
+            bool pending = this.socket.SendAsync(this.send_event_args);
 			if (!pending)
 			{
 				process_send(this.send_event_args);

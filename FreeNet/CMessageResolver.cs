@@ -56,15 +56,9 @@ namespace FreeNet
 		/// <returns>다 읽었으면 true, 데이터가 모자라서 못 읽었으면 false를 리턴한다.</returns>
 		bool read_until(byte[] buffer, ref int src_position, int offset, int transffered)
 		{
-			if (this.current_position >= offset + transffered)
-			{
-				// 들어온 데이터 만큼 다 읽은 상태이므로 더이상 읽을 데이터가 없다.
-				return false;
-			}
-
-			// 읽어와야 할 바이트.
-			// 데이터가 분리되어 올 경우 이전에 읽어놓은 값을 빼줘서 부족한 만큼 읽어올 수 있도록 계산해 준다.
-			int copy_size = this.position_to_read - this.current_position;
+            // 읽어와야 할 바이트.
+            // 데이터가 분리되어 올 경우 이전에 읽어놓은 값을 빼줘서 부족한 만큼 읽어올 수 있도록 계산해 준다.
+            int copy_size = this.position_to_read - this.current_position;
 
 			// 앗! 남은 데이터가 더 적다면 가능한 만큼만 복사한다.
 			if (this.remain_bytes < copy_size)
@@ -134,9 +128,16 @@ namespace FreeNet
 
                     // 다음 목표 지점(헤더 + 메시지 사이즈).
                     this.position_to_read = this.message_size;
-				}
 
-				// 메시지를 읽는다.
+                    // 헤더를 다 읽었는데 더이상 가져올 데이터가 없다면 다음 receive를 기다린다.
+                    // (예를들어 데이터가 조각나서 헤더만 오고 메시지는 다음번에 올 경우)
+                    if (this.remain_bytes <= 0)
+                    {
+                        return;
+                    }
+                }
+
+                // 메시지를 읽는다.
 				completed = read_until(buffer, ref src_position, offset, transffered);
 
 				if (completed)
@@ -146,7 +147,7 @@ namespace FreeNet
                     Array.Copy(this.message_buffer, clone, this.position_to_read);
                     callback(new ArraySegment<byte>(clone, 0, this.position_to_read));
 
-					clear_buffer();
+                    clear_buffer();
 				}
 			}
 		}
