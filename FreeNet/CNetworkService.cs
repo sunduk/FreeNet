@@ -22,7 +22,9 @@ namespace FreeNet
 		// configs.
 		int max_connections;
 		int buffer_size;
-		readonly int pre_alloc_count = 2;		// read, write
+        // receive버퍼만 할당해 놓는다.
+        // send버퍼는 보낼때마다 할당하든 풀에서 얻어오든 하기 때문에.
+		readonly int pre_alloc_count = 1;
 
 		public CNetworkService()
 		{
@@ -80,8 +82,7 @@ namespace FreeNet
 					arg.Completed += new EventHandler<SocketAsyncEventArgs>(send_completed);
 					arg.UserToken = token;
 
-					// assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
-					this.buffer_manager.SetBuffer(arg);
+                    // send버퍼는 보낼때 설정한다. SetBuffer가 아닌 BufferList를 사용.
 
 					// add SocketAsyncEventArg to the pool
 					this.send_event_args_pool.Push(arg);
