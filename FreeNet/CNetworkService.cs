@@ -83,6 +83,7 @@ namespace FreeNet
 					arg.UserToken = token;
 
                     // send버퍼는 보낼때 설정한다. SetBuffer가 아닌 BufferList를 사용.
+                    arg.SetBuffer(null, 0, 0);
 
 					// add SocketAsyncEventArg to the pool
 					this.send_event_args_pool.Push(arg);
@@ -117,7 +118,7 @@ namespace FreeNet
 			SocketAsyncEventArgs send_event_arg = new SocketAsyncEventArgs();
 			send_event_arg.Completed += new EventHandler<SocketAsyncEventArgs>(send_completed);
 			send_event_arg.UserToken = token;
-			send_event_arg.SetBuffer(new byte[1024], 0, 1024);
+			send_event_arg.SetBuffer(null, 0, 0);
 
 			begin_receive(socket, receive_event_arg, send_event_arg);
 		}
