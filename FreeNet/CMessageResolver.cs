@@ -126,7 +126,7 @@ namespace FreeNet
 					// 헤더 하나를 온전히 읽어왔으므로 메시지 사이즈를 구한다.
                     this.message_size = get_total_message_size();
 
-                    // 다음 목표 지점(헤더 + 메시지 사이즈).
+                    // 다음 목표 지점.
                     this.position_to_read = this.message_size;
 
                     // 헤더를 다 읽었는데 더이상 가져올 데이터가 없다면 다음 receive를 기다린다.
@@ -152,6 +152,11 @@ namespace FreeNet
 			}
 		}
 
+        /// <summary>
+        /// 헤더+바디 사이즈를 구한다.
+        /// 패킷 헤더부분에 이미 전체 메시지 사이즈가 계산되어 있으므로 헤더 크기에 맞게 변환만 시켜주면 된다.
+        /// </summary>
+        /// <returns></returns>
 		int get_total_message_size()
 		{
             if (Defines.HEADERSIZE == 2)
