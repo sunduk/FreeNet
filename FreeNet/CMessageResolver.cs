@@ -126,6 +126,14 @@ namespace FreeNet
 					// 헤더 하나를 온전히 읽어왔으므로 메시지 사이즈를 구한다.
                     this.message_size = get_total_message_size();
 
+                    // 메시지 사이즈가 0이하라면 잘못된 패킷으로 처리한다.
+                    // It was wrong message if size less than zero.
+                    if (this.message_size <= 0)
+                    {
+                        clear_buffer();
+                        return;
+                    }
+
                     // 다음 목표 지점.
                     this.position_to_read = this.message_size;
 
