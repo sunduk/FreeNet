@@ -201,8 +201,20 @@ namespace FreeNet
 			CUserToken token = e.UserToken as CUserToken;
 			if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
 			{
-				token.on_receive(e.Buffer, e.Offset, e.BytesTransferred);
+                try
+                {
+                    token.on_receive(e.Buffer, e.Offset, e.BytesTransferred);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception.Message);
+                    Console.WriteLine(exception.StackTrace);
 
+                    token.disconnect();
+                    return;
+                }
+
+                // Keep receive.
 				bool pending = token.socket.ReceiveAsync(e);
 				if (!pending)
 				{

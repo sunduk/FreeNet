@@ -50,11 +50,9 @@ namespace FreeNet
 		/// 데이터가 모자랄 경우 현재 남은 바이트 까지만 복사한다.
 		/// </summary>
 		/// <param name="buffer"></param>
-		/// <param name="offset"></param>
-		/// <param name="transffered"></param>
 		/// <param name="size_to_read"></param>
 		/// <returns>다 읽었으면 true, 데이터가 모자라서 못 읽었으면 false를 리턴한다.</returns>
-		bool read_until(byte[] buffer, ref int src_position, int offset, int transffered)
+		bool read_until(byte[] buffer, ref int src_position)
 		{
             // 읽어와야 할 바이트.
             // 데이터가 분리되어 올 경우 이전에 읽어놓은 값을 빼줘서 부족한 만큼 읽어올 수 있도록 계산해 준다.
@@ -68,7 +66,6 @@ namespace FreeNet
 
             // 버퍼에 복사.
             Array.Copy(buffer, src_position, this.message_buffer, this.current_position, copy_size);
-
 
 			// 원본 버퍼 포지션 이동.
 			src_position += copy_size;
@@ -116,7 +113,7 @@ namespace FreeNet
 					// 목표 지점 설정(헤더 위치까지 도달하도록 설정).
 					this.position_to_read = Defines.HEADERSIZE;
 
-                    completed = read_until(buffer, ref src_position, offset, transffered);
+                    completed = read_until(buffer, ref src_position);
 					if (!completed)
 					{
 						// 아직 다 못읽었으므로 다음 receive를 기다린다.
@@ -146,16 +143,15 @@ namespace FreeNet
                 }
 
                 // 메시지를 읽는다.
-				completed = read_until(buffer, ref src_position, offset, transffered);
+                completed = read_until(buffer, ref src_position);
 
 				if (completed)
 				{
                     // 패킷 하나를 완성 했다.
                     byte[] clone = new byte[this.position_to_read];
                     Array.Copy(this.message_buffer, clone, this.position_to_read);
-                    callback(new ArraySegment<byte>(clone, 0, this.position_to_read));
-
                     clear_buffer();
+                    callback(new ArraySegment<byte>(clone, 0, this.position_to_read));
 				}
 			}
 		}
@@ -179,7 +175,7 @@ namespace FreeNet
             return 0;
 		}
 
-		void clear_buffer()
+		public void clear_buffer()
 		{
 			Array.Clear(this.message_buffer, 0, this.message_buffer.Length);
 

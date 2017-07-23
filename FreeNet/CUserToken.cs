@@ -68,6 +68,7 @@ namespace FreeNet
         {
             //todo:send매소드와 호출 시점이 겹치면 큐가 깨질듯!!
             this.sending_list.Clear();
+            this.message_resolver.clear_buffer();
 
             if (this.peer != null)
             {

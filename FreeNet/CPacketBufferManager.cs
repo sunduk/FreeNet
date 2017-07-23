@@ -5,7 +5,10 @@ using System.Text;
 
 namespace FreeNet
 {
-	public class CPacketBufferManager
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Not stable. Do not use this class!!
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    public class CPacketBufferManager
 	{
 		static object cs_buffer = new object();
 		static Stack<CPacket> pool;

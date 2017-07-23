@@ -18,16 +18,16 @@ namespace FreeNet
 
 		public static CPacket create(Int16 protocol_id)
 		{
+			CPacket packet = new CPacket();
             //todo:다음 리팩토링 대상은 바로 여기다. CPacketBufferManager!!!
-			//CPacket packet = new CPacket();
-			CPacket packet = CPacketBufferManager.pop();
-			packet.set_protocol(protocol_id);
+            //CPacket packet = CPacketBufferManager.pop();
+            packet.set_protocol(protocol_id);
 			return packet;
 		}
 
 		public static void destroy(CPacket packet)
 		{
-			CPacketBufferManager.push(packet);
+			//CPacketBufferManager.push(packet);
 		}
 
 		public CPacket(byte[] buffer, IPeer owner)
