@@ -10,25 +10,15 @@ namespace FreeNet
 {
     public class CNetworkService
     {
-		int connected_count;
-		CListener client_listener;
 		SocketAsyncEventArgsPool receive_event_args_pool;
 		SocketAsyncEventArgsPool send_event_args_pool;
-		BufferManager buffer_manager;
 
 		public delegate void SessionHandler(CUserToken token);
 		public SessionHandler session_created_callback { get; set; }
 
-		// configs.
-		int max_connections;
-		int buffer_size;
-        // receive버퍼만 할당해 놓는다.
-        // send버퍼는 보낼때마다 할당하든 풀에서 얻어오든 하기 때문에.
-		readonly int pre_alloc_count = 1;
 
 		public CNetworkService()
 		{
-			this.connected_count = 0;
 			this.session_created_callback = null;
 		}
 
@@ -39,21 +29,25 @@ namespace FreeNet
 		//
 		public void initialize()
 		{
-			this.max_connections = 10000;
-			this.buffer_size = 1024;
+            // configs.
+            int max_connections = 10000;
+            int buffer_size = 1024;
+            // receive버퍼만 할당해 놓는다.
+            // send버퍼는 보낼때마다 할당하든 풀에서 얻어오든 하기 때문에.
+            int pre_alloc_count = 1;
 
-			this.buffer_manager = new BufferManager(this.max_connections * this.buffer_size * this.pre_alloc_count, this.buffer_size);
-			this.receive_event_args_pool = new SocketAsyncEventArgsPool(this.max_connections);
-			this.send_event_args_pool = new SocketAsyncEventArgsPool(this.max_connections);
+			BufferManager buffer_manager = new BufferManager(max_connections * buffer_size * pre_alloc_count, buffer_size);
+			this.receive_event_args_pool = new SocketAsyncEventArgsPool(max_connections);
+			this.send_event_args_pool = new SocketAsyncEventArgsPool(max_connections);
 
 			// Allocates one large byte buffer which all I/O operations use a piece of.  This gaurds 
 			// against memory fragmentation
-			this.buffer_manager.InitBuffer();
+			buffer_manager.InitBuffer();
 
 			// preallocate pool of SocketAsyncEventArgs objects
 			SocketAsyncEventArgs arg;
 
-			for (int i = 0; i < this.max_connections; i++)
+			for (int i = 0; i < max_connections; i++)
 			{
 				// 동일한 소켓에 대고 send, receive를 하므로
 				// user token은 세션별로 하나씩만 만들어 놓고 
@@ -68,7 +62,7 @@ namespace FreeNet
 					arg.UserToken = token;
 
 					// assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
-					this.buffer_manager.SetBuffer(arg);
+					buffer_manager.SetBuffer(arg);
 
 					// add SocketAsyncEventArg to the pool
 					this.receive_event_args_pool.Push(arg);
@@ -93,9 +87,9 @@ namespace FreeNet
 
 		public void listen(string host, int port, int backlog)
 		{
-			this.client_listener = new CListener();
-			this.client_listener.callback_on_newclient += on_new_client;
-			this.client_listener.start(host, port, backlog);
+			CListener client_listener = new CListener();
+			client_listener.callback_on_newclient += on_new_client;
+			client_listener.start(host, port, backlog);
 		}
 
 		/// <summary>
