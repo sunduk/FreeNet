@@ -13,6 +13,7 @@ namespace FreeNet
 		public IPeer owner { get; private set; }
 		public byte[] buffer { get; private set; }
 		public int position { get; private set; }
+        public int size { get; private set; }
 
 		public Int16 protocol_id { get; private set; }
 
@@ -30,7 +31,20 @@ namespace FreeNet
 			//CPacketBufferManager.push(packet);
 		}
 
-		public CPacket(byte[] buffer, IPeer owner)
+        public CPacket(ArraySegment<byte> buffer, IPeer owner)
+        {
+            // 참조로만 보관하여 작업한다.
+            // 복사가 필요하면 별도로 구현해야 한다.
+            this.buffer = buffer.Array;
+
+            // 헤더는 읽을필요 없으니 그 이후부터 시작한다.
+            this.position = Defines.HEADERSIZE;
+            this.size = buffer.Count;
+
+            this.owner = owner;
+        }
+
+        public CPacket(byte[] buffer, IPeer owner)
 		{
 			// 참조로만 보관하여 작업한다.
 			// 복사가 필요하면 별도로 구현해야 한다.

@@ -24,8 +24,12 @@ namespace FreeNet
         // sending_list lock처리에 사용되는 객체.
         private object cs_sending_queue;
 
-        public CUserToken()
+        IMessageDispatcher dispatcher;
+
+
+        public CUserToken(IMessageDispatcher dispatcher)
         {
+            this.dispatcher = dispatcher;
             this.cs_sending_queue = new object();
 
             this.message_resolver = new CMessageResolver();
@@ -58,9 +62,18 @@ namespace FreeNet
 
         void on_message(ArraySegment<byte> buffer)
         {
-            if (this.peer != null)
+            if (this.peer == null)
             {
-                this.peer.on_message(buffer);
+                return;
+            }
+
+            // IO스레드에서 직접 호출.
+            this.peer.on_message(buffer);
+
+            // 로직 스레드의 큐를 타고 호출되도록 함.
+            if (this.dispatcher != null)
+            {
+                this.dispatcher.on_message(this.peer, buffer);
             }
         }
 
@@ -90,14 +103,14 @@ namespace FreeNet
             lock (this.cs_sending_queue)
             {
                 this.sending_list.Add(data);
-            }
 
-            if (this.sending_list.Count > 1)
-            {
-                // 큐에 무언가가 들어 있다면 아직 이전 전송이 완료되지 않은 상태이므로 큐에 추가만 하고 리턴한다.
-                // 현재 수행중인 SendAsync가 완료된 이후에 큐를 검사하여 데이터가 있으면 SendAsync를 호출하여 전송해줄 것이다.
-                //Console.WriteLine("Queue is not empty. Copy and Enqueue a msg. protocol id : " + msg.protocol_id);
-                return;
+                if (this.sending_list.Count > 1)
+                {
+                    // 큐에 무언가가 들어 있다면 아직 이전 전송이 완료되지 않은 상태이므로 큐에 추가만 하고 리턴한다.
+                    // 현재 수행중인 SendAsync가 완료된 이후에 큐를 검사하여 데이터가 있으면 SendAsync를 호출하여 전송해줄 것이다.
+                    //Console.WriteLine("Queue is not empty. Copy and Enqueue a msg. protocol id : " + msg.protocol_id);
+                    return;
+                }
             }
 
             start_send();

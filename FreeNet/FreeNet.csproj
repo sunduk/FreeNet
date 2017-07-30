@@ -42,12 +42,16 @@
   <ItemGroup>
     <Compile Include="BufferManager.cs" />
     <Compile Include="CConnector.cs" />
+    <Compile Include="CDoubleBufferingQueue.cs" />
     <Compile Include="CListener.cs" />
+    <Compile Include="CLogicMessageEntry.cs" />
     <Compile Include="CNetworkService.cs" />
     <Compile Include="Const.cs" />
     <Compile Include="CPacket.cs" />
     <Compile Include="CPacketBufferManager.cs" />
     <Compile Include="CUserToken.cs" />
+    <Compile Include="ILogicQueue.cs" />
+    <Compile Include="IMessageDispatcher.cs" />
     <Compile Include="IPeer.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

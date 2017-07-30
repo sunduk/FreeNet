@@ -16,22 +16,41 @@ namespace FreeNet
 		public delegate void SessionHandler(CUserToken token);
 		public SessionHandler session_created_callback { get; set; }
 
+        public CLogicMessageEntry logic_entry { get; private set; }
+
 
 		public CNetworkService()
 		{
 			this.session_created_callback = null;
 		}
 
+
+        /// <summary>
+        /// 서버측 초기화 매소드.
+        /// 로직 스레드를 사용하려면 use_logicthread를 true로 설정한다.
+        ///  -> 하나의 로직 스레드를 생성한다.
+        ///  -> 메시지는 큐잉되어 싱글 스레드에서 처리된다.
+        /// 
+        /// 로직 스레드를 사용하지 않으려면 use_logicthread를 false로 설정한다.
+        ///  -> 별도의 로직 스레드는 생성하지 않는다.
+        ///  -> IO스레드에서 직접 메시지 처리를 담당하게 된다.
+        /// </summary>
+        /// <param name="use_logicthread">true=Create single logic thread. false=Not use any logic thread.</param>
+        public void initialize(bool use_logicthread = false)
+        {
+            // configs.
+            int max_connections = 10000;
+            int buffer_size = 1024;
+            initialize(max_connections, buffer_size, use_logicthread);
+        }
+
 		// Initializes the server by preallocating reusable buffers and 
 		// context objects.  These objects do not need to be preallocated 
 		// or reused, but it is done this way to illustrate how the API can 
 		// easily be used to create reusable objects to increase server performance.
 		//
-		public void initialize()
+		public void initialize(int max_connections, int buffer_size, bool use_logicthread)
 		{
-            // configs.
-            int max_connections = 10000;
-            int buffer_size = 1024;
             // receive버퍼만 할당해 놓는다.
             // send버퍼는 보낼때마다 할당하든 풀에서 얻어오든 하기 때문에.
             int pre_alloc_count = 1;
@@ -47,12 +66,18 @@ namespace FreeNet
 			// preallocate pool of SocketAsyncEventArgs objects
 			SocketAsyncEventArgs arg;
 
-			for (int i = 0; i < max_connections; i++)
+            if (use_logicthread)
+            {
+                this.logic_entry = new CLogicMessageEntry();
+                this.logic_entry.start();
+            }
+
+            for (int i = 0; i < max_connections; i++)
 			{
 				// 동일한 소켓에 대고 send, receive를 하므로
 				// user token은 세션별로 하나씩만 만들어 놓고 
 				// receive, send EventArgs에서 동일한 token을 참조하도록 구성한다.
-				CUserToken token = new CUserToken();
+				CUserToken token = new CUserToken(this.logic_entry);
 
 				// receive pool
 				{
