@@ -22,30 +22,16 @@ namespace CSampleServer
 			this.token.set_peer(this);
 		}
 
+        /// <summary>
+        /// IO스레드에서 호출되는 매소드.
+        /// 
+        /// Called from IO thread.
+        /// </summary>
+        /// <param name="buffer"></param>
 		void IPeer.on_message(ArraySegment<byte> buffer)
 		{
-            //send(buffer);
-            //return;
-
-            // ex)
-            CPacket msg = new CPacket(buffer.Array, this);
-            PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
-			//Console.WriteLine("------------------------------------------------------");
-			//Console.WriteLine("protocol id " + protocol);
-			switch (protocol)
-			{
-				case PROTOCOL.CHAT_MSG_REQ:
-					{
-						string text = msg.pop_string();
-						Console.WriteLine(string.Format("text {0}", text));
-
-						CPacket response = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
-						response.push(text);
-						send(response);
-					}
-					break;
-			}
 		}
+
 
 		void IPeer.on_removed()
 		{
@@ -70,8 +56,31 @@ namespace CSampleServer
 			this.token.socket.Disconnect(false);
 		}
 
+        /// <summary>
+        /// 로직 스레드에서 호출되는 매소드.
+        /// 
+        /// Called from logic thread(single thread).
+        /// </summary>
+        /// <param name="msg"></param>
 		void IPeer.process_user_operation(CPacket msg)
 		{
-		}
+            // ex)
+            PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
+            //Console.WriteLine("------------------------------------------------------");
+            //Console.WriteLine("protocol id " + protocol);
+            switch (protocol)
+            {
+                case PROTOCOL.CHAT_MSG_REQ:
+                    {
+                        string text = msg.pop_string();
+                        Console.WriteLine(string.Format("text {0}", text));
+
+                        CPacket response = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
+                        response.push(text);
+                        send(response);
+                    }
+                    break;
+            }
+        }
 	}
 }

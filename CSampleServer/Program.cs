@@ -13,14 +13,13 @@ namespace CSampleServer
 
 		static void Main(string[] args)
 		{
-			CPacketBufferManager.initialize(2000);
 			userlist = new List<CGameUser>();
 
 			CNetworkService service = new CNetworkService();
 			// 콜백 매소드 설정.
 			service.session_created_callback += on_session_created;
 			// 초기화.
-			service.initialize();
+			service.initialize(true);
 			service.listen("0.0.0.0", 7979, 1000);
 
 

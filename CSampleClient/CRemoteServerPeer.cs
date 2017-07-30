@@ -42,7 +42,7 @@ namespace CSampleClient
 		void IPeer.send(CPacket msg)
 		{
             msg.record_size();
-			this.token.send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
+            this.token.send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
 		}
 
 		void IPeer.disconnect()
