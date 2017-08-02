@@ -19,36 +19,22 @@ namespace FreeNet
 	/// </summary>
 	public interface IPeer
 	{
-        /// <summary>
-        /// 소켓 버퍼로부터 데이터를 수신하여 패킷 하나를 완성했을 때 호출 된다.
-        /// 호출 흐름 : .Net Socket ReceiveAsync -> CUserToken.on_receive -> CPeer.on_message
-        /// 
-        /// 패킷 순서에 대해서(TCP)
-        ///		이 매소드는 .Net Socket의 스레드풀에 의해 작동되어 호출되므로 어느 스레드에서 호출될지 알 수 없다.
-        ///		하지만 하나의 CPeer객체에 대해서는 이 매소드가 완료된 이후 다음 패킷이 들어오도록 구현되어 있으므로
-        ///		클라이언트가 보낸 패킷 순서는 보장이 된다.
-        ///		
-        /// 주의할점
-        ///     IO스레드에서 직접 호출되므로 동기화 처리에 유의할것.
-        ///     
-        ///     Called from IO thread.
-        ///     Called this method always, even if use_logicthread of CNetworkService is false.
-        /// </summary>
-        /// <param name="buffer">
-        /// CUserToken의 버퍼로부터 힙으로 복사된 데이터이다.
-        /// </param>
-        void on_message(ArraySegment<byte> buffer);
+        // 제거됨.
+        //void on_message(ArraySegment<byte> buffer);
+
+        // 제거됨.
+        //void process_user_operation(CPacket msg);
 
 
         /// <summary>
-        /// 로직스레드(싱글스레드임)에서 호출되므로 동기화 처리가 필요없다.
-        /// CNetworkService를 초기화 할 때 use_logicthread = treu로 설정한 경우에만 이 매소드가 호출된다.
+        /// CNetworkService.initialize에서 use_logicthread를 true로 설정할 경우
+        /// -> IO스레드에서 직접 호출됨.
         /// 
-        /// Called from logic thread(thread safety).
-        /// Only if use_logicthread of CNetworkService is true, called this method.
+        /// false로 설정할 경우
+        /// -> 로직 스레드에서 호출됨. 로직 스레드는 싱글 스레드로 돌아감.
         /// </summary>
-        /// <param name="msg"></param>
-        void process_user_operation(CPacket msg);
+        /// <param name="buffer"></param>
+        void on_message(CPacket msg);
 
 
         /// <summary>

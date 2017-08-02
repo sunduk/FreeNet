@@ -51,18 +51,10 @@ namespace FreeNet
         }
 
 
-        void ILogicQueue.dispatch_all()
+        Queue<CPacket> ILogicQueue.get_all()
         {
-            // 락 걸고 큐를 교체한다.
             swap();
-
-            // 큐에 들어있는 모든 패킷을 전달한다.
-            // ref_output은 로직스레드에서만 접근하므로 락 걸 필요가 없다.
-            while (this.ref_output.Count > 0)
-            {
-                CPacket msg = this.ref_output.Dequeue();
-                msg.owner.process_user_operation(msg);
-            }
+            return this.ref_output;
         }
 
 

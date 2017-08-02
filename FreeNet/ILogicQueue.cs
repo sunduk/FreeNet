@@ -8,6 +8,6 @@ namespace FreeNet
     public interface ILogicQueue
     {
         void enqueue(CPacket msg);
-        void dispatch_all();
+        Queue<CPacket> get_all();
     }
 }

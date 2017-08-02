@@ -19,14 +19,19 @@ namespace CSampleServer
 			// 콜백 매소드 설정.
 			service.session_created_callback += on_session_created;
 			// 초기화.
-			service.initialize(true);
-			service.listen("0.0.0.0", 7979, 1000);
+			service.initialize(10000, 1024, false);
+			service.listen("0.0.0.0", 7979, 100);
 
 
 			Console.WriteLine("Started!");
 			while (true)
 			{
-				//Console.Write(".");
+                //Console.Write(".");
+                string input = Console.ReadLine();
+                if (input.Equals("users"))
+                {
+                    Console.WriteLine(service.usermanager.get_total_count());
+                }
 				System.Threading.Thread.Sleep(1000);
 			}
 

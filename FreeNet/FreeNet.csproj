@@ -49,6 +49,7 @@
     <Compile Include="Const.cs" />
     <Compile Include="CPacket.cs" />
     <Compile Include="CPacketBufferManager.cs" />
+    <Compile Include="CServerUserManager.cs" />
     <Compile Include="CUserToken.cs" />
     <Compile Include="ILogicQueue.cs" />
     <Compile Include="IMessageDispatcher.cs" />

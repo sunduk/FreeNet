@@ -10,7 +10,7 @@ namespace FreeNet
 	/// </summary>
 	public class CPacket
 	{
-		public IPeer owner { get; private set; }
+		public CUserToken owner { get; private set; }
 		public byte[] buffer { get; private set; }
 		public int position { get; private set; }
         public int size { get; private set; }
@@ -31,7 +31,7 @@ namespace FreeNet
 			//CPacketBufferManager.push(packet);
 		}
 
-        public CPacket(ArraySegment<byte> buffer, IPeer owner)
+        public CPacket(ArraySegment<byte> buffer, CUserToken owner)
         {
             // 참조로만 보관하여 작업한다.
             // 복사가 필요하면 별도로 구현해야 한다.
@@ -44,7 +44,7 @@ namespace FreeNet
             this.owner = owner;
         }
 
-        public CPacket(byte[] buffer, IPeer owner)
+        public CPacket(byte[] buffer, CUserToken owner)
 		{
 			// 참조로만 보관하여 작업한다.
 			// 복사가 필요하면 별도로 구현해야 한다.

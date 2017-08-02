@@ -60,6 +60,7 @@ namespace CSampleClient
 			lock (game_servers)
 			{
 				IPeer server = new CRemoteServerPeer(server_token);
+                server_token.on_connected();
 				game_servers.Add(server);
 				Console.WriteLine("Connected!");
 			}

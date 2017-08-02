@@ -22,17 +22,6 @@ namespace CSampleServer
 			this.token.set_peer(this);
 		}
 
-        /// <summary>
-        /// IO스레드에서 호출되는 매소드.
-        /// 
-        /// Called from IO thread.
-        /// </summary>
-        /// <param name="buffer"></param>
-		void IPeer.on_message(ArraySegment<byte> buffer)
-		{
-		}
-
-
 		void IPeer.on_removed()
 		{
 			//Console.WriteLine("The client disconnected.");
@@ -56,13 +45,7 @@ namespace CSampleServer
 			this.token.socket.Disconnect(false);
 		}
 
-        /// <summary>
-        /// 로직 스레드에서 호출되는 매소드.
-        /// 
-        /// Called from logic thread(single thread).
-        /// </summary>
-        /// <param name="msg"></param>
-		void IPeer.process_user_operation(CPacket msg)
+		void IPeer.on_message(CPacket msg)
 		{
             // ex)
             PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
@@ -78,6 +61,20 @@ namespace CSampleServer
                         CPacket response = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
                         response.push(text);
                         send(response);
+
+                        if (text.Equals("exit"))
+                        {
+                            //todo:테스트.
+                            //for (int i = 0; i < 1000; ++i)
+                            //{
+                            //    CPacket dummy = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
+                            //    dummy.push(i.ToString());
+                            //    send(dummy);
+                            //    //System.Threading.Thread.Sleep(1);
+                            //}
+
+                            this.token.disconnect();
+                        }
                     }
                     break;
             }

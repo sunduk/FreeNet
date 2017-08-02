@@ -29,6 +29,11 @@ namespace FreeNet
 			if (item == null) { throw new ArgumentNullException("Items added to a SocketAsyncEventArgsPool cannot be null"); }
 			lock (m_pool)
 			{
+                if (m_pool.Contains(item))
+                {
+                    throw new Exception("Already exist item.");
+                }
+
 				m_pool.Push(item);
 			}
 		}

@@ -51,8 +51,8 @@ namespace FreeNet
 				this.accept_args = new SocketAsyncEventArgs();
 				this.accept_args.Completed += new EventHandler<SocketAsyncEventArgs>(on_accept_completed);
 
-				Thread listen_thread = new Thread(do_listen);
-				listen_thread.Start();
+                Thread listen_thread = new Thread(do_listen);
+                listen_thread.Start();
 			}
 			catch (Exception e)
 			{
@@ -118,9 +118,6 @@ namespace FreeNet
                 Socket client_socket = e.AcceptSocket;
                 client_socket.NoDelay = true;
 
-                // 다음 연결을 받아들인다.
-                this.flow_control_event.Set();
-
                 // 이 클래스에서는 accept까지의 역할만 수행하고 클라이언트의 접속 이후의 처리는
                 // 외부로 넘기기 위해서 콜백 매소드를 호출해 주도록 합니다.
                 // 이유는 소켓 처리부와 컨텐츠 구현부를 분리하기 위함입니다.
@@ -132,15 +129,18 @@ namespace FreeNet
                     this.callback_on_newclient(client_socket, e.UserToken);
                 }
 
-				return;
+                // 다음 연결을 받아들인다.
+                this.flow_control_event.Set();
+
+                return;
             }
             else
             {
                 //todo:Accept 실패 처리.
-				//Console.WriteLine("Failed to accept client.");
+				Console.WriteLine("Failed to accept client. " + e.SocketError);
             }
 
-			// 다음 연결을 받아들인다.
+            // 다음 연결을 받아들인다.
             this.flow_control_event.Set();
 		}
 	}
