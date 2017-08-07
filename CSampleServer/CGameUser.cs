@@ -64,16 +64,15 @@ namespace CSampleServer
 
                         if (text.Equals("exit"))
                         {
-                            //todo:테스트.
-                            //for (int i = 0; i < 1000; ++i)
-                            //{
-                            //    CPacket dummy = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
-                            //    dummy.push(i.ToString());
-                            //    send(dummy);
-                            //    //System.Threading.Thread.Sleep(1);
-                            //}
+                            // 대량의 메시지를 한꺼번에 보낸 후 종료하는 시나리오 테스트.
+                            for (int i = 0; i < 1000; ++i)
+                            {
+                                CPacket dummy = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
+                                dummy.push(i.ToString());
+                                send(dummy);
+                            }
 
-                            this.token.disconnect();
+                            this.token.ban();
                         }
                     }
                     break;

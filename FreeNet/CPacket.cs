@@ -41,6 +41,10 @@ namespace FreeNet
             this.position = Defines.HEADERSIZE;
             this.size = buffer.Count;
 
+            // 프로토콜 아이디만 확인할 경우도 있으므로 미리 뽑아놓는다.
+            this.protocol_id = pop_protocol_id();
+            this.position = Defines.HEADERSIZE;
+
             this.owner = owner;
         }
 

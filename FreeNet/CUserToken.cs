@@ -26,6 +26,9 @@ namespace FreeNet
             Closed,
         }
 
+        // 종료 코드로 사용할 프로토콜 ID.
+        const short CLOSING_CODE = 0;
+
         // close중복 처리 방지를 위한 플래그.
         // 0 = 연결된 상태.
         // 1 = 종료된 상태.
@@ -97,6 +100,18 @@ namespace FreeNet
 
         void on_message_completed(ArraySegment<byte> buffer)
         {
+            // active close를 위한 코딩.
+            //   서버에서 종료하라고 연락이 왔는지 체크한다.
+            //   만약 종료신호가 맞다면 disconnect를 호출하여 받은쪽에서 먼저 종료 요청을 보낸다.
+            CPacket msg = new CPacket(buffer, this);
+            if (msg.protocol_id == CLOSING_CODE)
+            {
+                disconnect();
+                return;
+            }
+
+
+            // 종료 요청이 아닌 일반적인 데이터의 처리.
             if (this.peer == null)
             {
                 return;
@@ -110,11 +125,15 @@ namespace FreeNet
             else
             {
                 // IO스레드에서 직접 호출.
-                CPacket msg = new CPacket(buffer, this);
                 this.peer.on_message(msg);
             }
         }
 
+
+        /// <summary>
+        /// 로직스레드를 타고 호출되는 매소드.
+        /// </summary>
+        /// <param name="msg"></param>
         public void on_message(CPacket msg)
         {
             if (this.peer == null)
@@ -193,6 +212,13 @@ namespace FreeNet
             }
 
             start_send();
+        }
+
+
+        public void send(CPacket msg)
+        {
+            msg.record_size();
+            send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
         }
 
 
@@ -285,18 +311,19 @@ namespace FreeNet
 
                 // 다 보냈고 더이상 보낼것도 없다.
                 this.sending_list.Clear();
-
+ 
                 // 종료가 예약된 경우, 보낼건 다 보냈으니 진짜 종료 처리를 진행한다.
                 if (this.current_state == State.ReserveClosing)
                 {
-                    close();
+                    this.socket.Shutdown(SocketShutdown.Send);
                 }
             }
         }
 
 
         /// <summary>
-        /// 내가 상대방을 강제로 끊을 때 사용한다.
+        /// 연결을 종료한다.
+        /// 주로 클라이언트에서 종료할 때 호출한다.
         /// </summary>
         public void disconnect()
         {
@@ -316,6 +343,36 @@ namespace FreeNet
             {
                 close();
             }
+        }
+
+
+        /// <summary>
+        /// 연결을 종료한다. 단, 종료코드를 전송한 뒤 상대방이 먼저 연결을 끊게 한다.
+        /// 주로 서버에서 클라이언트의 연결을 끊을 때 사용한다.
+        /// 
+        /// TIME_WAIT상태를 서버에 남기지 않으려면 disconnect대신 이 매소드를 사용해서
+        /// 클라이언트를 종료시켜야 한다.
+        /// </summary>
+        public void ban()
+        {
+            try
+            {
+                byebye();
+            }
+            catch (Exception)
+            {
+                close();
+            }
+        }
+
+
+        /// <summary>
+        /// 종료코드를 전송하여 상대방이 먼저 끊도록 한다.
+        /// </summary>
+        void byebye()
+        {
+            CPacket bye = CPacket.create(CLOSING_CODE);
+            send(bye);
         }
 
 

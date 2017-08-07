@@ -19,8 +19,11 @@ namespace CSampleClient
 			this.token.set_peer(this);
 		}
 
+        int recv_count = 0;
 		void IPeer.on_message(CPacket msg)
 		{
+            System.Threading.Interlocked.Increment(ref this.recv_count);
+
 			PROTOCOL protocol_id = (PROTOCOL)msg.pop_protocol_id();
 			switch (protocol_id)
 			{
@@ -36,7 +39,8 @@ namespace CSampleClient
 		void IPeer.on_removed()
 		{
 			Console.WriteLine("Server removed.");
-		}
+            Console.WriteLine("recv count " + this.recv_count);
+        }
 
 		void IPeer.send(CPacket msg)
 		{
