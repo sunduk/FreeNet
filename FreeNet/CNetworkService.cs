@@ -20,15 +20,7 @@ namespace FreeNet
         public CServerUserManager usermanager { get; private set; }
 
 
-		public CNetworkService()
-		{
-			this.session_created_callback = null;
-            this.usermanager = new CServerUserManager();
-		}
-
-
         /// <summary>
-        /// 서버측 초기화 매소드.
         /// 로직 스레드를 사용하려면 use_logicthread를 true로 설정한다.
         ///  -> 하나의 로직 스레드를 생성한다.
         ///  -> 메시지는 큐잉되어 싱글 스레드에서 처리된다.
@@ -38,12 +30,25 @@ namespace FreeNet
         ///  -> IO스레드에서 직접 메시지 처리를 담당하게 된다.
         /// </summary>
         /// <param name="use_logicthread">true=Create single logic thread. false=Not use any logic thread.</param>
-        public void initialize(bool use_logicthread = false)
+		public CNetworkService(bool use_logicthread = false)
+		{
+			this.session_created_callback = null;
+            this.usermanager = new CServerUserManager();
+
+            if (use_logicthread)
+            {
+                this.logic_entry = new CLogicMessageEntry(this);
+                this.logic_entry.start();
+            }
+        }
+
+
+        public void initialize()
         {
             // configs.
             int max_connections = 10000;
             int buffer_size = 1024;
-            initialize(max_connections, buffer_size, use_logicthread);
+            initialize(max_connections, buffer_size);
         }
 
 		// Initializes the server by preallocating reusable buffers and 
@@ -51,7 +56,7 @@ namespace FreeNet
 		// or reused, but it is done this way to illustrate how the API can 
 		// easily be used to create reusable objects to increase server performance.
 		//
-		public void initialize(int max_connections, int buffer_size, bool use_logicthread)
+		public void initialize(int max_connections, int buffer_size)
 		{
             // receive버퍼만 할당해 놓는다.
             // send버퍼는 보낼때마다 할당하든 풀에서 얻어오든 하기 때문에.
@@ -67,12 +72,6 @@ namespace FreeNet
 
 			// preallocate pool of SocketAsyncEventArgs objects
 			SocketAsyncEventArgs arg;
-
-            if (use_logicthread)
-            {
-                this.logic_entry = new CLogicMessageEntry(this);
-                this.logic_entry.start();
-            }
 
             for (int i = 0; i < max_connections; i++)
 			{
@@ -110,7 +109,7 @@ namespace FreeNet
 					this.send_event_args_pool.Push(arg);
 				}
 			}
-		}
+        }
 
 		public void listen(string host, int port, int backlog)
 		{
@@ -120,12 +119,14 @@ namespace FreeNet
 		}
 
 		/// <summary>
-		/// todo:검토중...
 		/// 원격 서버에 접속 성공 했을 때 호출됩니다.
 		/// </summary>
 		/// <param name="socket"></param>
 		public void on_connect_completed(Socket socket, CUserToken token)
 		{
+            token.on_session_closed += this.on_session_closed;
+            this.usermanager.add(token);
+
 			// SocketAsyncEventArgsPool에서 빼오지 않고 그때 그때 할당해서 사용한다.
 			// 풀은 서버에서 클라이언트와의 통신용으로만 쓰려고 만든것이기 때문이다.
 			// 클라이언트 입장에서 서버와 통신을 할 때는 접속한 서버당 두개의 EventArgs만 있으면 되기 때문에 그냥 new해서 쓴다.

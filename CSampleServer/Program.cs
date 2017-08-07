@@ -15,11 +15,11 @@ namespace CSampleServer
 		{
 			userlist = new List<CGameUser>();
 
-			CNetworkService service = new CNetworkService();
+			CNetworkService service = new CNetworkService(false);
 			// 콜백 매소드 설정.
 			service.session_created_callback += on_session_created;
 			// 초기화.
-			service.initialize(10000, 1024, false);
+			service.initialize(10000, 1024);
 			service.listen("0.0.0.0", 7979, 100);
 
 

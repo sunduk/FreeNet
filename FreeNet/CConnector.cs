@@ -50,8 +50,8 @@ namespace FreeNet
 				//Console.WriteLine("Connect completd!");
 				CUserToken token = new CUserToken(this.network_service.logic_entry);
 
-				// 데이터 수신 준비.
-				this.network_service.on_connect_completed(this.client, token);
+                // 데이터 수신 준비.
+                this.network_service.on_connect_completed(this.client, token);
 
 				if (this.connected_callback != null)
 				{

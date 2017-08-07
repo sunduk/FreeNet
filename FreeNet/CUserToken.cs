@@ -100,18 +100,6 @@ namespace FreeNet
 
         void on_message_completed(ArraySegment<byte> buffer)
         {
-            // active close를 위한 코딩.
-            //   서버에서 종료하라고 연락이 왔는지 체크한다.
-            //   만약 종료신호가 맞다면 disconnect를 호출하여 받은쪽에서 먼저 종료 요청을 보낸다.
-            CPacket msg = new CPacket(buffer, this);
-            if (msg.protocol_id == CLOSING_CODE)
-            {
-                disconnect();
-                return;
-            }
-
-
-            // 종료 요청이 아닌 일반적인 데이터의 처리.
             if (this.peer == null)
             {
                 return;
@@ -125,17 +113,24 @@ namespace FreeNet
             else
             {
                 // IO스레드에서 직접 호출.
-                this.peer.on_message(msg);
+                CPacket msg = new CPacket(buffer, this);
+                on_message(msg);
             }
         }
 
 
-        /// <summary>
-        /// 로직스레드를 타고 호출되는 매소드.
-        /// </summary>
-        /// <param name="msg"></param>
         public void on_message(CPacket msg)
         {
+            // active close를 위한 코딩.
+            //   서버에서 종료하라고 연락이 왔는지 체크한다.
+            //   만약 종료신호가 맞다면 disconnect를 호출하여 받은쪽에서 먼저 종료 요청을 보낸다.
+            if (msg.protocol_id == CLOSING_CODE)
+            {
+                disconnect();
+                return;
+            }
+
+
             if (this.peer == null)
             {
                 return;

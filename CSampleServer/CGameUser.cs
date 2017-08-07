@@ -42,7 +42,7 @@ namespace CSampleServer
 
 		void IPeer.disconnect()
 		{
-			this.token.socket.Disconnect(false);
+            this.token.ban();
 		}
 
 		void IPeer.on_message(CPacket msg)

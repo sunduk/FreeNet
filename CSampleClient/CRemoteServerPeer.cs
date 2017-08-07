@@ -50,7 +50,7 @@ namespace CSampleClient
 
 		void IPeer.disconnect()
 		{
-			this.token.socket.Disconnect(false);
+            this.token.disconnect();
 		}
 	}
 }
