@@ -18,6 +18,10 @@ Project info
 * TCP socket server that can be used in game server.
 * .Net Framework 3.5
 
+Structure
+----------
+![structure](https://github.com/sunduk/FreeNet/blob/master/documents/struct.png?raw=true)
+
 라이선스
 ----------
 * 소스코드는 상업적, 비상업적 어느 용도이든 자유롭게 사용 가능 합니다.
