@@ -21,6 +21,10 @@ Project info
 Structure
 ----------
 ![structure](https://github.com/sunduk/FreeNet/blob/master/documents/struct.png?raw=true)
+![class structure](https://github.com/sunduk/FreeNet/blob/master/documents/class_struct.png?raw=true)
+![worker](https://github.com/sunduk/FreeNet/blob/master/documents/worker_thread.png?raw=true)
+![logic](https://github.com/sunduk/FreeNet/blob/master/documents/logic_thread.png?raw=true)
+![send](https://github.com/sunduk/FreeNet/blob/master/documents/send.png?raw=true)
 
 라이선스
 ----------
