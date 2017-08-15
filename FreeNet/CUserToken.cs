@@ -28,6 +28,7 @@ namespace FreeNet
 
         // 종료 코드로 사용할 프로토콜 ID.
         const short CLOSING_CODE = 0;
+        const short PACKET_DISCONNECTED = -1;
 
         // close중복 처리 방지를 위한 플래그.
         // 0 = 연결된 상태.
@@ -131,18 +132,31 @@ namespace FreeNet
             }
 
 
-            if (this.peer == null)
+            if (this.peer != null)
             {
-                return;
+                try
+                {
+                    if (msg.protocol_id == PACKET_DISCONNECTED)
+                    {
+                        this.peer.on_removed();
+                    }
+                    else
+                    {
+                        this.peer.on_message(msg);
+                    }
+                }
+                catch (Exception)
+                {
+                    close();
+                }
             }
 
-            try
+            if (msg.protocol_id == PACKET_DISCONNECTED)
             {
-                this.peer.on_message(msg);
-            }
-            catch (Exception)
-            {
-                close();
+                if (this.on_session_closed != null)
+                {
+                    this.on_session_closed(this);
+                }
             }
         }
 
@@ -172,13 +186,15 @@ namespace FreeNet
 
             if (this.peer != null)
             {
-                this.peer.on_removed();
-                this.peer = null;
-            }
-
-            if (this.on_session_closed != null)
-            {
-                this.on_session_closed(this);
+                CPacket msg = CPacket.create((short)-1);
+                if (this.dispatcher != null)
+                {
+                    this.dispatcher.on_message(this, new ArraySegment<byte>(msg.buffer, 0, msg.position));
+                }
+                else
+                {
+                    on_message(msg);
+                }
             }
         }
 
