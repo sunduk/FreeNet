@@ -11,12 +11,14 @@ Version
 * C# 비동기 네트워크 라이브러리.
 * 게임 서버에서 사용할 수 있는 TCP기반의 socket server.
 * .Net Framework 3.5 사용
+* Unity 연동 가능
 
 Project info
 ----------
 * C# Asynchronous network library.
 * TCP socket server that can be used in game server.
 * .Net Framework 3.5
+* Available in unity3d.
 
 아키텍처 및 구조   
 ----------
