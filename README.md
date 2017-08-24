@@ -18,21 +18,21 @@ Project info
 * TCP socket server that can be used in game server.
 * .Net Framework 3.5
 
-Structure
+아키텍처 및 구조   
 ----------
-(Korean)
 ![structure](https://github.com/sunduk/FreeNet/blob/master/documents/struct.png?raw=true)
 ![class structure](https://github.com/sunduk/FreeNet/blob/master/documents/class_struct.png?raw=true)
 ![worker](https://github.com/sunduk/FreeNet/blob/master/documents/worker_thread.png?raw=true)
 ![logic](https://github.com/sunduk/FreeNet/blob/master/documents/logic_thread.png?raw=true)
 ![send](https://github.com/sunduk/FreeNet/blob/master/documents/send.png?raw=true)
 
-(English)
+Structure
+----------
 ![structure](https://github.com/sunduk/FreeNet/blob/master/documents/struct_en.png?raw=true)
 ![class structure](https://github.com/sunduk/FreeNet/blob/master/documents/class_struct_en.png?raw=true)
-![worker](https://github.com/sunduk/FreeNet/blob/master/documents/worker_thread.png_en?raw=true)
-![logic](https://github.com/sunduk/FreeNet/blob/master/documents/logic_thread.png_en?raw=true)
-![send](https://github.com/sunduk/FreeNet/blob/master/documents/send.png_en?raw=true)
+![worker](https://github.com/sunduk/FreeNet/blob/master/documents/worker_thread_en.png?raw=true)
+![logic](https://github.com/sunduk/FreeNet/blob/master/documents/logic_thread_en.png?raw=true)
+![send](https://github.com/sunduk/FreeNet/blob/master/documents/send_en.png?raw=true)
 
 
 라이선스
