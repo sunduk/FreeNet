@@ -116,7 +116,11 @@ namespace FreeNet
 			CListener client_listener = new CListener();
 			client_listener.callback_on_newclient += on_new_client;
 			client_listener.start(host, port, backlog);
-		}
+
+            // heartbeat.
+            byte check_interval = 10;
+            this.usermanager.start_heartbeat_checking(check_interval, check_interval);
+        }
 
 		/// <summary>
 		/// 원격 서버에 접속 성공 했을 때 호출됩니다.
@@ -171,7 +175,12 @@ namespace FreeNet
 			}
 
 			begin_receive(client_socket, receive_args, send_args);
-		}
+
+            CPacket msg = CPacket.create((short)CUserToken.SYS_START_HEARTBEAT);
+            byte send_interval = 5;
+            msg.push(send_interval);
+            user_token.send(msg);
+        }
 
 		void begin_receive(Socket socket, SocketAsyncEventArgs receive_args, SocketAsyncEventArgs send_args)
 		{

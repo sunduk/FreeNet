@@ -48,5 +48,5 @@ namespace FreeNet
 
 
 		void disconnect();
-	}
+    }
 }

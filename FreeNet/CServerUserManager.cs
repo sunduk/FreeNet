@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace FreeNet
 {
@@ -13,11 +14,21 @@ namespace FreeNet
         object cs_user;
         List<CUserToken> users;
 
+        Timer timer_heartbeat;
+        long heartbeat_duration;
+
 
         public CServerUserManager()
         {
             this.cs_user = new object();
             this.users = new List<CUserToken>();
+        }
+
+
+        public void start_heartbeat_checking(uint check_interval_sec, uint allow_duration_sec)
+        {
+            this.heartbeat_duration = allow_duration_sec * 10000000;
+            this.timer_heartbeat = new Timer(check_heartbeat, null, 1000 * check_interval_sec, 1000 * check_interval_sec);
         }
 
 
@@ -52,5 +63,27 @@ namespace FreeNet
         {
             return this.users.Count;
         }
+
+
+        void check_heartbeat(object state)
+        {
+            long allowed_time = DateTime.Now.Ticks - this.heartbeat_duration;
+
+            lock (this.cs_user)
+            {
+                for (int i = 0; i < this.users.Count; ++i)
+                {
+                    long heartbeat_time = this.users[i].latest_heartbeat_time;
+                    if (heartbeat_time >= allowed_time)
+                    {
+                        continue;
+                    }
+
+                    this.users[i].disconnect();
+                }
+            }
+        }
+
+
     }
 }

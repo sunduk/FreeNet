@@ -26,9 +26,14 @@ namespace FreeNet
             Closed,
         }
 
-        // 종료 코드로 사용할 프로토콜 ID.
-        const short CLOSING_CODE = 0;
-        const short PACKET_DISCONNECTED = -1;
+        // 종료 요청. S -> C
+        const short SYS_CLOSE_REQ = 0;
+        // 종료 응답. C -> S
+        const short SYS_CLOSE_ACK = -1;
+        // 하트비트 시작. S -> C
+        public const short SYS_START_HEARTBEAT = -2;
+        // 하트비트 갱신. C -> S
+        public const short SYS_UPDATE_HEARTBEAT = -3;
 
         // close중복 처리 방지를 위한 플래그.
         // 0 = 연결된 상태.
@@ -57,6 +62,11 @@ namespace FreeNet
         public delegate void ClosedDelegate(CUserToken token);
         public ClosedDelegate on_session_closed;
 
+        // heartbeat.
+        public long latest_heartbeat_time { get; private set; }
+        CHeartbeatSender heartbeat_sender;
+        bool auto_heartbeat;
+
 
         public CUserToken(IMessageDispatcher dispatcher)
         {
@@ -66,6 +76,7 @@ namespace FreeNet
             this.message_resolver = new CMessageResolver();
             this.peer = null;
             this.sending_list = new List<ArraySegment<byte>>();
+            this.latest_heartbeat_time = DateTime.Now.Ticks;
 
             this.current_state = State.Idle;
         }
@@ -74,6 +85,7 @@ namespace FreeNet
         {
             this.current_state = State.Connected;
             this.is_closed = 0;
+            this.auto_heartbeat = true;
         }
 
         public void set_peer(IPeer peer)
@@ -125,10 +137,31 @@ namespace FreeNet
             // active close를 위한 코딩.
             //   서버에서 종료하라고 연락이 왔는지 체크한다.
             //   만약 종료신호가 맞다면 disconnect를 호출하여 받은쪽에서 먼저 종료 요청을 보낸다.
-            if (msg.protocol_id == CLOSING_CODE)
+            switch (msg.protocol_id)
             {
-                disconnect();
-                return;
+                case SYS_CLOSE_REQ:
+                    disconnect();
+                    return;
+
+                case SYS_START_HEARTBEAT:
+                    {
+                        // 순서대로 파싱해야 하므로 프로토콜 아이디는 버린다.
+                        msg.pop_protocol_id();
+                        // 전송 인터벌.
+                        byte interval = msg.pop_byte();
+                        this.heartbeat_sender = new CHeartbeatSender(this, interval);
+
+                        if (this.auto_heartbeat)
+                        {
+                            start_heartbeat();
+                        }
+                    }
+                    return;
+
+                case SYS_UPDATE_HEARTBEAT:
+                    //Console.WriteLine("heartbeat : " + DateTime.Now);
+                    this.latest_heartbeat_time = DateTime.Now.Ticks;
+                    return;
             }
 
 
@@ -136,13 +169,15 @@ namespace FreeNet
             {
                 try
                 {
-                    if (msg.protocol_id == PACKET_DISCONNECTED)
+                    switch (msg.protocol_id)
                     {
-                        this.peer.on_removed();
-                    }
-                    else
-                    {
-                        this.peer.on_message(msg);
+                        case SYS_CLOSE_ACK:
+                            this.peer.on_removed();
+                            break;
+
+                        default:
+                            this.peer.on_message(msg);
+                            break;
                     }
                 }
                 catch (Exception)
@@ -151,7 +186,7 @@ namespace FreeNet
                 }
             }
 
-            if (msg.protocol_id == PACKET_DISCONNECTED)
+            if (msg.protocol_id == SYS_CLOSE_ACK)
             {
                 if (this.on_session_closed != null)
                 {
@@ -382,7 +417,7 @@ namespace FreeNet
         /// </summary>
         void byebye()
         {
-            CPacket bye = CPacket.create(CLOSING_CODE);
+            CPacket bye = CPacket.create(SYS_CLOSE_REQ);
             send(bye);
         }
 
@@ -390,6 +425,40 @@ namespace FreeNet
         public bool is_connected()
         {
             return this.current_state == State.Connected;
+        }
+
+
+        public void start_heartbeat()
+        {
+            if (this.heartbeat_sender != null)
+            {
+                this.heartbeat_sender.play();
+            }
+        }
+
+
+        public void stop_heartbeat()
+        {
+            if (this.heartbeat_sender != null)
+            {
+                this.heartbeat_sender.stop();
+            }
+        }
+
+
+        public void disable_auto_heartbeat()
+        {
+            stop_heartbeat();
+            this.auto_heartbeat = false;
+        }
+
+
+        public void update_heartbeat_manually(float time)
+        {
+            if (this.heartbeat_sender != null)
+            {
+                this.heartbeat_sender.update(time);
+            }
         }
     }
 }
