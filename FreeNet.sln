@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSampleServer", "CSampleSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSampleClient", "CSampleClient\CSampleClient.csproj", "{3ECD16DA-BD8E-44D3-B7A1-E9F687B9B84E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "viruswar", "viruswar", "{930841B7-DD91-4F95-BBB9-820AA5BB34C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer", "..\viruswar\server\GameServer\GameServer.csproj", "{341BA7A5-4942-48F4-885C-D186EA81BC92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +31,15 @@ Global
 		{3ECD16DA-BD8E-44D3-B7A1-E9F687B9B84E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3ECD16DA-BD8E-44D3-B7A1-E9F687B9B84E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3ECD16DA-BD8E-44D3-B7A1-E9F687B9B84E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{341BA7A5-4942-48F4-885C-D186EA81BC92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{341BA7A5-4942-48F4-885C-D186EA81BC92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{341BA7A5-4942-48F4-885C-D186EA81BC92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{341BA7A5-4942-48F4-885C-D186EA81BC92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{341BA7A5-4942-48F4-885C-D186EA81BC92} = {930841B7-DD91-4F95-BBB9-820AA5BB34C2}
 	EndGlobalSection
 EndGlobal
