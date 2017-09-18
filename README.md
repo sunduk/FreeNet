@@ -4,6 +4,7 @@ C# Network library. Asynchronous. TCP. GameServer.
 
 Version
 ----------
+* v0.0.2 Heartbeat
 * v0.0.1
 
 프로젝트 정보
