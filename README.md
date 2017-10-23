@@ -4,6 +4,7 @@ C# Network library. Asynchronous. TCP. GameServer.
 
 Version
 ----------
+* v0.1.0 Heartbeat
 * v0.0.1
 
 프로젝트 정보
@@ -19,6 +20,12 @@ Project info
 * TCP socket server that can be used in game server.
 * .Net Framework 3.5
 * Available in unity3d.
+
+Sample Game
+----------
+![viruswar](https://github.com/sunduk/FreeNet/blob/master/viruswar/client/doc/screenshot.png?raw=true)
+* FreeNet라이브러리를 활용하여 Unity로 만든 온라인 멀티플레이 보드 게임 세균전.
+* The VirusWar that online multiplay board game sample developed using FreeNet and Unity.
 
 아키텍처 및 구조   
 ----------
