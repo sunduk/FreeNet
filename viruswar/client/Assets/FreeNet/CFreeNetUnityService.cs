@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,26 +9,26 @@ using FreeNet;
 namespace FreeNetUnity
 {
 	/// <summary>
-	/// FreeNet¿£Áø°ú À¯´ÏÆ¼ ¾îÇÃ¸®ÄÉÀÌ¼ÇÀ» ÀÌ¾îÁÖ´Â Å¬·¡½ºÀÌ´Ù.
-	/// FreeNet¿£Áø¿¡¼­ ¹ŞÀº Á¢¼Ó ÀÌº¥Æ®, ¸Ş½ÃÁö ¼ö½Å ÀÌº¥Æ®µîÀ» ¾îÇÃ¸®ÄÉÀÌ¼ÇÀ¸·Î Àü´ŞÇÏ´Â ¿ªÇÒÀ» ÇÏ´Âµ¥
-	/// MonoBehaviour¸¦ »ó¼Ó¹Ş¾Æ À¯´ÏÆ¼ ¾îÇÃ¸®ÄÉÀÌ¼Ç°ú µ¿ÀÏÇÑ ½º·¹µå¿¡¼­ ÀÛµ¿µÇµµ·Ï ±¸ÇöÇÏ¿´´Ù.
-	/// µû¶ó¼­ ÀÌ Å¬·¡½ºÀÇ Äİ¹é ¸Å¼Òµå¿¡¼­ À¯´ÏÆ¼ ¿ÀºêÁ§Æ®¿¡ Á¢±ÙÇÒ ¶§ º°µµÀÇ µ¿±âÈ­ Ã³¸®´Â ÇÏÁö ¾Ê¾Æµµ µÈ´Ù.
+	/// FreeNetì—”ì§„ê³¼ ìœ ë‹ˆí‹° ì–´í”Œë¦¬ì¼€ì´ì…˜ì„ ì´ì–´ì£¼ëŠ” í´ë˜ìŠ¤ì´ë‹¤.
+	/// FreeNetì—”ì§„ì—ì„œ ë°›ì€ ì ‘ì† ì´ë²¤íŠ¸, ë©”ì‹œì§€ ìˆ˜ì‹  ì´ë²¤íŠ¸ë“±ì„ ì–´í”Œë¦¬ì¼€ì´ì…˜ìœ¼ë¡œ ì „ë‹¬í•˜ëŠ” ì—­í• ì„ í•˜ëŠ”ë°
+	/// MonoBehaviourë¥¼ ìƒì†ë°›ì•„ ìœ ë‹ˆí‹° ì–´í”Œë¦¬ì¼€ì´ì…˜ê³¼ ë™ì¼í•œ ìŠ¤ë ˆë“œì—ì„œ ì‘ë™ë˜ë„ë¡ êµ¬í˜„í•˜ì˜€ë‹¤.
+	/// ë”°ë¼ì„œ ì´ í´ë˜ìŠ¤ì˜ ì½œë°± ë§¤ì†Œë“œì—ì„œ ìœ ë‹ˆí‹° ì˜¤ë¸Œì íŠ¸ì— ì ‘ê·¼í•  ë•Œ ë³„ë„ì˜ ë™ê¸°í™” ì²˜ë¦¬ëŠ” í•˜ì§€ ì•Šì•„ë„ ëœë‹¤.
 	/// </summary>
 	public class CFreeNetUnityService : MonoBehaviour
 	{
 		CFreeNetEventManager event_manager;
 
-		// ¿¬°áµÈ °ÔÀÓ ¼­¹ö °´Ã¼.
+		// ì—°ê²°ëœ ê²Œì„ ì„œë²„ ê°ì²´.
 		IPeer gameserver;
 
-		// TCPÅë½ÅÀ» À§ÇÑ ¼­ºñ½º °´Ã¼.
+		// TCPí†µì‹ ì„ ìœ„í•œ ì„œë¹„ìŠ¤ ê°ì²´.
 		CNetworkService service;
 
-		// Á¢¼Ó ¿Ï·á½Ã È£ÃâµÇ´Â µ¨¸®°ÔÀÌÆ®. ¾îÇÃ¸®ÄÉÀÌ¼Ç¿¡¼­ Äİ¹é ¸Å¼Òµå¸¦ ¼³Á¤ÇÏ¿© »ç¿ëÇÑ´Ù.
+		// ì ‘ì† ì™„ë£Œì‹œ í˜¸ì¶œë˜ëŠ” ë¸ë¦¬ê²Œì´íŠ¸. ì–´í”Œë¦¬ì¼€ì´ì…˜ì—ì„œ ì½œë°± ë§¤ì†Œë“œë¥¼ ì„¤ì •í•˜ì—¬ ì‚¬ìš©í•œë‹¤.
 		public delegate void StatusChangedHandler(NETWORK_EVENT status);
 		public StatusChangedHandler appcallback_on_status_changed;
 
-		// ³×Æ®¿öÅ© ¸Ş½ÃÁö ¼ö½Å½Ã È£ÃâµÇ´Â µ¨¸®°ÔÀÌÆ®. ¾îÇÃ¸®ÄÉÀÌ¼Ç¿¡¼­ Äİ¹é ¸Å¼Òµå¸¦ ¼³Á¤ÇÏ¿© »ç¿ëÇÑ´Ù.
+		// ë„¤íŠ¸ì›Œí¬ ë©”ì‹œì§€ ìˆ˜ì‹ ì‹œ í˜¸ì¶œë˜ëŠ” ë¸ë¦¬ê²Œì´íŠ¸. ì–´í”Œë¦¬ì¼€ì´ì…˜ì—ì„œ ì½œë°± ë§¤ì†Œë“œë¥¼ ì„¤ì •í•˜ì—¬ ì‚¬ìš©í•œë‹¤.
 		public delegate void MessageHandler(CPacket msg);
 		public MessageHandler appcallback_on_message;
 
@@ -41,13 +41,13 @@ namespace FreeNetUnity
 		{
             if (this.service == null)
             {
-                // CNetworkService°´Ã¼´Â ¸Ş½ÃÁöÀÇ ºñµ¿±â ¼Û,¼ö½Å Ã³¸®¸¦ ¼öÇàÇÑ´Ù.
+                // CNetworkServiceê°ì²´ëŠ” ë©”ì‹œì§€ì˜ ë¹„ë™ê¸° ì†¡,ìˆ˜ì‹  ì²˜ë¦¬ë¥¼ ìˆ˜í–‰í•œë‹¤.
                 this.service = new CNetworkService();
             }
 
-			// endpointÁ¤º¸¸¦ °®°íÀÖ´Â Connector»ı¼º. ¸¸µé¾îµĞ NetworkService°´Ã¼¸¦ ³Ö¾îÁØ´Ù.
+			// endpointì •ë³´ë¥¼ ê°–ê³ ìˆëŠ” Connectorìƒì„±. ë§Œë“¤ì–´ë‘” NetworkServiceê°ì²´ë¥¼ ë„£ì–´ì¤€ë‹¤.
 			CConnector connector = new CConnector(service);
-			// Á¢¼Ó ¼º°ø½Ã È£ÃâµÉ Äİ¹é ¸Å¼Òµå ÁöÁ¤.
+			// ì ‘ì† ì„±ê³µì‹œ í˜¸ì¶œë  ì½œë°± ë§¤ì†Œë“œ ì§€ì •.
 			connector.connected_callback += on_connected_gameserver;
 			IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(host), port);
 			connector.connect(endpoint);
@@ -61,7 +61,7 @@ namespace FreeNetUnity
 
 
 		/// <summary>
-		/// Á¢¼Ó ¼º°ø½Ã È£ÃâµÉ Äİ¹é ¸Å¼Òµå.
+		/// ì ‘ì† ì„±ê³µì‹œ í˜¸ì¶œë  ì½œë°± ë§¤ì†Œë“œ.
 		/// </summary>
 		/// <param name="server_token"></param>
 		void on_connected_gameserver(CUserToken server_token)
@@ -69,21 +69,21 @@ namespace FreeNetUnity
 			this.gameserver = new CRemoteServerPeer(server_token);
 			((CRemoteServerPeer)this.gameserver).set_eventmanager(this.event_manager);
 
-            // Update¸Å¼Òµå¿¡¼­ Á÷Á¢ º¸³¾°ÍÀÌ±â ¶§¹®¿¡ ¿£Áø¿¡¼­ º¸³»´Â ÇÏÆ®ºñÆ®´Â ²ö´Ù.
+            // Updateë§¤ì†Œë“œì—ì„œ ì§ì ‘ ë³´ë‚¼ê²ƒì´ê¸° ë•Œë¬¸ì— ì—”ì§„ì—ì„œ ë³´ë‚´ëŠ” í•˜íŠ¸ë¹„íŠ¸ëŠ” ëˆë‹¤.
             server_token.disable_auto_heartbeat();
 
-            // À¯´ÏÆ¼ ¾îÇÃ¸®ÄÉÀÌ¼ÇÀ¸·Î ÀÌº¥Æ®¸¦ ³Ñ°ÜÁÖ±â À§ÇØ¼­ ¸Å´ÏÀú¿¡ Å¥À× ½ÃÄÑ ÁØ´Ù.
+            // ìœ ë‹ˆí‹° ì–´í”Œë¦¬ì¼€ì´ì…˜ìœ¼ë¡œ ì´ë²¤íŠ¸ë¥¼ ë„˜ê²¨ì£¼ê¸° ìœ„í•´ì„œ ë§¤ë‹ˆì €ì— íì‰ ì‹œì¼œ ì¤€ë‹¤.
             this.event_manager.enqueue_network_event(NETWORK_EVENT.connected);
         }
 
 		/// <summary>
-		/// ³×Æ®¿öÅ©¿¡¼­ ¹ß»ıÇÏ´Â ¸ğµç ÀÌº¥Æ®¸¦ Å¬¶óÀÌ¾ğÆ®¿¡°Ô ¾Ë·ÁÁÖ´Â ¿ªÇÒÀ» Update¿¡¼­ ÁøÇàÇÑ´Ù.
-		/// FreeNet¿£ÁøÀÇ ¸Ş½ÃÁö ¼Û¼ö½Å Ã³¸®´Â ¿öÄ¿½º·¹µå¿¡¼­ ¼öÇàµÇÁö¸¸ À¯´ÏÆ¼ÀÇ ·ÎÁ÷ Ã³¸®´Â ¸ŞÀÎ ½º·¹µå¿¡¼­ ¼öÇàµÇ¹Ç·Î
-		/// Å¥À×Ã³¸®¸¦ ÅëÇÏ¿© ¸ŞÀÎ ½º·¹µå¿¡¼­ ¸ğµç ·ÎÁ÷ Ã³¸®°¡ ÀÌ·ç¾îÁöµµ·Ï ±¸¼ºÇÏ¿´´Ù.
+		/// ë„¤íŠ¸ì›Œí¬ì—ì„œ ë°œìƒí•˜ëŠ” ëª¨ë“  ì´ë²¤íŠ¸ë¥¼ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ì•Œë ¤ì£¼ëŠ” ì—­í• ì„ Updateì—ì„œ ì§„í–‰í•œë‹¤.
+		/// FreeNetì—”ì§„ì˜ ë©”ì‹œì§€ ì†¡ìˆ˜ì‹  ì²˜ë¦¬ëŠ” ì›Œì»¤ìŠ¤ë ˆë“œì—ì„œ ìˆ˜í–‰ë˜ì§€ë§Œ ìœ ë‹ˆí‹°ì˜ ë¡œì§ ì²˜ë¦¬ëŠ” ë©”ì¸ ìŠ¤ë ˆë“œì—ì„œ ìˆ˜í–‰ë˜ë¯€ë¡œ
+		/// íì‰ì²˜ë¦¬ë¥¼ í†µí•˜ì—¬ ë©”ì¸ ìŠ¤ë ˆë“œì—ì„œ ëª¨ë“  ë¡œì§ ì²˜ë¦¬ê°€ ì´ë£¨ì–´ì§€ë„ë¡ êµ¬ì„±í•˜ì˜€ë‹¤.
 		/// </summary>
 		void Update()
 		{
-			// ¼ö½ÅµÈ ¸Ş½ÃÁö¿¡ ´ëÇÑ Äİ¹é.
+			// ìˆ˜ì‹ ëœ ë©”ì‹œì§€ì— ëŒ€í•œ ì½œë°±.
 			if (this.event_manager.has_message())
 			{
 				CPacket msg = this.event_manager.dequeue_network_message();
@@ -93,7 +93,7 @@ namespace FreeNetUnity
 				}
 			}
 
-            // ³×Æ®¿öÅ© ¹ß»ı ÀÌº¥Æ®¿¡ ´ëÇÑ Äİ¹é.
+            // ë„¤íŠ¸ì›Œí¬ ë°œìƒ ì´ë²¤íŠ¸ì— ëŒ€í•œ ì½œë°±.
             if (this.event_manager.has_event())
 			{
                 NETWORK_EVENT status = this.event_manager.dequeue_network_event();
@@ -136,7 +136,7 @@ namespace FreeNetUnity
 		}
 
 		/// <summary>
-		/// Á¤»óÀûÀÎ Á¾·á½Ã¿¡´Â OnApplicationQuit¸Å¼Òµå¿¡¼­ disconnect¸¦ È£ÃâÇØ Áà¾ß À¯´ÏÆ¼°¡ hangµÇÁö ¾Ê´Â´Ù.
+		/// ì •ìƒì ì¸ ì¢…ë£Œì‹œì—ëŠ” OnApplicationQuitë§¤ì†Œë“œì—ì„œ disconnectë¥¼ í˜¸ì¶œí•´ ì¤˜ì•¼ ìœ ë‹ˆí‹°ê°€ hangë˜ì§€ ì•ŠëŠ”ë‹¤.
 		/// </summary>
 		void OnApplicationQuit()
 		{

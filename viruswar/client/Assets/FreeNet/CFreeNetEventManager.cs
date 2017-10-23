@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using FreeNet;
@@ -7,29 +7,29 @@ namespace FreeNetUnity
 {
 	public enum NETWORK_EVENT : byte
 	{
-		// Á¢¼Ó ¿Ï·á.
+		// ì ‘ì† ì™„ë£Œ.
 		connected,
 
-		// ¿¬°á ²÷±è.
+		// ì—°ê²° ëŠê¹€.
 		disconnected,
 
-		// ³¡.
+		// ë.
 		end
 	}
 
 	/// <summary>
-	/// ³×Æ®¿öÅ© ¿£Áø¿¡¼­ ¹ß»ıµÈ ÀÌº¥Æ®µéÀ» Å¥À×½ÃÅ²´Ù.
-	/// ¿öÄ¿ ½º·¹µå¿Í ¸ŞÀÎ ½º·¹µå ¾çÂÊ¿¡¼­ È£ÃâµÉ ¼ö ÀÖÀ¸¹Ç·Î ½º·¹µå µ¿±âÈ­ Ã³¸®¸¦ Àû¿ëÇÏ¿´´Ù.
+	/// ë„¤íŠ¸ì›Œí¬ ì—”ì§„ì—ì„œ ë°œìƒëœ ì´ë²¤íŠ¸ë“¤ì„ íì‰ì‹œí‚¨ë‹¤.
+	/// ì›Œì»¤ ìŠ¤ë ˆë“œì™€ ë©”ì¸ ìŠ¤ë ˆë“œ ì–‘ìª½ì—ì„œ í˜¸ì¶œë  ìˆ˜ ìˆìœ¼ë¯€ë¡œ ìŠ¤ë ˆë“œ ë™ê¸°í™” ì²˜ë¦¬ë¥¼ ì ìš©í•˜ì˜€ë‹¤.
 	/// </summary>
 	public class CFreeNetEventManager
 	{
-		// µ¿±âÈ­ °´Ã¼.
+		// ë™ê¸°í™” ê°ì²´.
 		object cs_event;
 
-		// ³×Æ®¿öÅ© ¿£Áø¿¡¼­ ¹ß»ıµÈ ÀÌº¥Æ®µéÀ» º¸°üÇØ³õ´Â Å¥.
+		// ë„¤íŠ¸ì›Œí¬ ì—”ì§„ì—ì„œ ë°œìƒëœ ì´ë²¤íŠ¸ë“¤ì„ ë³´ê´€í•´ë†“ëŠ” í.
 		Queue<NETWORK_EVENT> network_events;
 
-		// ¼­¹ö¿¡¼­ ¹ŞÀº ÆĞÅ¶µéÀ» º¸°üÇØ³õ´Â Å¥.
+		// ì„œë²„ì—ì„œ ë°›ì€ íŒ¨í‚·ë“¤ì„ ë³´ê´€í•´ë†“ëŠ” í.
 		Queue<CPacket> network_message_events;
 
 		public CFreeNetEventManager()
