@@ -47,6 +47,10 @@ namespace CSampleServer
 
 		void IPeer.on_message(CPacket msg)
 		{
+            // 에코서버 테스트할 때 사용함.
+            //send(msg);
+            //return;
+
             // ex)
             PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
             //Console.WriteLine("------------------------------------------------------");

@@ -32,6 +32,12 @@ namespace FreeNet
         }
 
 
+        public void stop_heartbeat_checking()
+        {
+            this.timer_heartbeat.Dispose();
+        }
+
+
         public void add(CUserToken user)
         {
             lock (this.cs_user)

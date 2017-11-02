@@ -122,6 +122,11 @@ namespace FreeNet
             this.usermanager.start_heartbeat_checking(check_interval, check_interval);
         }
 
+        public void disable_heartbeat()
+        {
+            this.usermanager.stop_heartbeat_checking();
+        }
+
 		/// <summary>
 		/// 원격 서버에 접속 성공 했을 때 호출됩니다.
 		/// </summary>

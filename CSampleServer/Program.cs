@@ -22,6 +22,10 @@ namespace CSampleServer
 			service.initialize(10000, 1024);
 			service.listen("0.0.0.0", 7979, 100);
 
+            // 서버에서 하트비트 체크를 끌때 사용함.
+            // 스트레스 테스트를 하기 위해 FreeNet이 아닌 다른 클라이언트를 쓰는 경우등에 필요할것 같다.
+            //service.disable_heartbeat();
+
 
 			Console.WriteLine("Started!");
 			while (true)
@@ -35,7 +39,7 @@ namespace CSampleServer
 				System.Threading.Thread.Sleep(1000);
 			}
 
-			Console.ReadKey();
+			//Console.ReadKey();
 		}
 
 		/// <summary>
