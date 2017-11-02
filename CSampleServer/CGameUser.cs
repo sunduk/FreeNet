@@ -48,6 +48,7 @@ namespace CSampleServer
 		void IPeer.on_message(CPacket msg)
 		{
             // 에코서버 테스트할 때 사용함.
+            // Remove below comments to use echo server.
             //send(msg);
             //return;
 

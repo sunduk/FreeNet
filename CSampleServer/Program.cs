@@ -24,6 +24,8 @@ namespace CSampleServer
 
             // 서버에서 하트비트 체크를 끌때 사용함.
             // 스트레스 테스트를 하기 위해 FreeNet이 아닌 다른 클라이언트를 쓰는 경우등에 필요할것 같다.
+            // Remove below comments to disable heartbeat on server.
+            // (It maybe use to stress test from another client program not using FreeNet.)
             //service.disable_heartbeat();
 
 
