@@ -45,7 +45,7 @@ Project info
 1. 테스트 서버와 테스트 클라이언트를 실행한다.
 2. 그림에 나온 순서대로 테스트를 진행한다.
 * ![Test](https://github.com/sunduk/FreeNet/blob/master/test_result/testtool.png?raw=true)
-3. Times 항목을 늘려가며 성능을 테스트한다.
+3. Times 항목을 늘려가며 성능을 테스트한다(**주의:과도하게늘릴경우 PC가 따운될수있음!!**).
 
 Sample Game
 ----------
