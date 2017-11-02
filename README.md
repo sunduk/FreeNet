@@ -24,8 +24,8 @@ Project info
 테스트 클라이언트
 ----------
 * cgcii홈페이지에 공개된 테스트툴을 활용.
-* 다운로드 페이지 : ![http://www.cgcii.co.kr/index.php?mid=board_eLHH13&document_srl=1936](http://www.cgcii.co.kr/index.php?mid=board_eLHH13&document_srl=1936)
-* 테스트 클라이언트 다운로드 링크 : ![http://www.cgcii.co.kr/?module=file&act=procFileDownload&file_srl=2976&sid=ed18a57f286b4fd7490ebd0fc2da9dcd&module_srl=1910](http://www.cgcii.co.kr/?module=file&act=procFileDownload&file_srl=2976&sid=ed18a57f286b4fd7490ebd0fc2da9dcd&module_srl=1910)
+* 다운로드 페이지 : [http://www.cgcii.co.kr/index.php?mid=board_eLHH13&document_srl=1936](http://www.cgcii.co.kr/index.php?mid=board_eLHH13&document_srl=1936)
+* 테스트 클라이언트 다운로드 링크 : [http://www.cgcii.co.kr/?module=file&act=procFileDownload&file_srl=2976&sid=ed18a57f286b4fd7490ebd0fc2da9dcd&module_srl=1910](http://www.cgcii.co.kr/?module=file&act=procFileDownload&file_srl=2976&sid=ed18a57f286b4fd7490ebd0fc2da9dcd&module_srl=1910)
 
 테스트 서버
 ----------
