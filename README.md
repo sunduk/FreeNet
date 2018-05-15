@@ -1,7 +1,7 @@
 FreeNet
 =========
 * C# Network library. Asynchronous. TCP. GameServer.
-* Email me if you have any question : lee.seokhyun@gmail.com
+* Email me if you have any questions : lee.seokhyun@gmail.com
 
 Version
 ----------
