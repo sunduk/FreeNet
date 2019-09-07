@@ -33,7 +33,7 @@ namespace FreeNet
 		/// </param>
 		public void on_message(Const<byte[]> buffer)
 		{
-			CPacket msg = new CPacket(buffer.Value);
+			CPacket msg = new CPacket(buffer.Value, null);
 			Int16 protocol_id = msg.pop_int16();
 			switch (protocol_id)
 			{
