@@ -5,6 +5,7 @@ FreeNet
 
 Version
 ----------
+* v0.1.1 Apply .Net Core
 * v0.1.0 Heartbeat
 * v0.0.1
 
@@ -12,15 +13,15 @@ Version
 ----------
 * C# 비동기 네트워크 라이브러리.
 * 게임 서버에서 사용할 수 있는 TCP기반의 socket server.
-* .Net Framework 3.5 사용
-* Unity 연동 가능
+* .Net Core 사용
+* Unity 연동 가능 (.NetFramework버전으로 바꿔서 빌드해야 연동 가능함)
 
 Project info
 ----------
 * C# Asynchronous network library.
 * TCP socket server that can be used in game server.
-* .Net Framework 3.5
-* Available in unity3d.
+* .Net Core
+* Available in unity3d (need to use .NetFramework instead of .NetCore).
 
 테스트 클라이언트
 ----------
