@@ -76,4 +76,4 @@ Structure
 
 License
 ----------
-* All source codes are free to use commercially also
+* All source codes are free to use commercially also.
