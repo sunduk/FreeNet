@@ -1,6 +1,6 @@
 FreeNet
 =========
-**FreeNet** is a lightweight asynchronous network library.
+**FreeNet** is a lightweight asynchronous C# network library.
 
 Structure
 =========
