@@ -357,7 +357,7 @@ namespace FreeNet
 
                 // 다 보냈고 더이상 보낼것도 없다.
                 this.sending_list.Clear();
- 
+
                 // 종료가 예약된 경우, 보낼건 다 보냈으니 진짜 종료 처리를 진행한다.
                 if (this.current_state == State.ReserveClosing)
                 {
