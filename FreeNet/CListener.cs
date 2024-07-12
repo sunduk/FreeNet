@@ -54,7 +54,7 @@ namespace FreeNet
                 Thread listen_thread = new Thread(do_listen);
                 listen_thread.Start();
             }
-            catch (Exception e)
+            catch (Exception /*e*/)
             {
                 //Console.WriteLine(e.Message);
             }
@@ -81,7 +81,7 @@ namespace FreeNet
                     // 리턴값을 확인하여 분기시켜야 합니다.
                     pending = listen_socket.AcceptAsync(this.accept_args);
                 }
-                catch (Exception e)
+                catch (Exception /*e*/)
                 {
                     //Console.WriteLine(e.Message);
                     continue;
