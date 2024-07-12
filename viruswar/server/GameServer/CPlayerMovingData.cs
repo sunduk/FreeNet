@@ -35,8 +35,6 @@ namespace GameServer
         }
 
 
-        public byte is_changed;
-
         public byte player_index;
 
         public float position_x;
@@ -44,7 +42,5 @@ namespace GameServer
         public float position_z;
 
         public Dictionary<MOVE_DIRECTION, float> accelerations = new Dictionary<MOVE_DIRECTION, float>();
-
-        public byte direction;
     }
 }
