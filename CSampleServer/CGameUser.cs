@@ -7,46 +7,46 @@ using FreeNet;
 
 namespace CSampleServer
 {
-	using GameServer;
+    using GameServer;
 
-	/// <summary>
-	/// 하나의 session객체를 나타낸다.
-	/// </summary>
-	class CGameUser : IPeer
-	{
-		CUserToken token;
+    /// <summary>
+    /// 하나의 session객체를 나타낸다.
+    /// </summary>
+    class CGameUser : IPeer
+    {
+        CUserToken token;
 
-		public CGameUser(CUserToken token)
-		{
-			this.token = token;
-			this.token.set_peer(this);
-		}
+        public CGameUser(CUserToken token)
+        {
+            this.token = token;
+            this.token.set_peer(this);
+        }
 
-		void IPeer.on_removed()
-		{
-			//Console.WriteLine("The client disconnected.");
+        void IPeer.on_removed()
+        {
+            //Console.WriteLine("The client disconnected.");
 
-			Program.remove_user(this);
-		}
+            Program.remove_user(this);
+        }
 
-		public void send(CPacket msg)
-		{
+        public void send(CPacket msg)
+        {
             msg.record_size();
             this.token.send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
-		}
+        }
 
         public void send(ArraySegment<byte> data)
         {
             this.token.send(data);
         }
 
-		void IPeer.disconnect()
-		{
+        void IPeer.disconnect()
+        {
             this.token.ban();
-		}
+        }
 
-		void IPeer.on_message(CPacket msg)
-		{
+        void IPeer.on_message(CPacket msg)
+        {
             // 에코서버 테스트할 때 사용함.
             // Remove below comments to use echo server.
             //send(msg);
@@ -83,5 +83,5 @@ namespace CSampleServer
                     break;
             }
         }
-	}
+    }
 }
