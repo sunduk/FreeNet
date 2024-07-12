@@ -298,8 +298,6 @@ namespace FreeNet
             }
         }
 
-        static int sent_count = 0;
-        static object cs_count = new object();
         /// <summary>
         /// 비동기 전송 완료시 호출되는 콜백 매소드.
         /// </summary>

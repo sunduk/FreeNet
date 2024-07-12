@@ -31,8 +31,6 @@ namespace GameServer
 				//Console.Write(".");
 				System.Threading.Thread.Sleep(1000);
 			}
-
-			Console.ReadKey();
 		}
 
 
