@@ -5,10 +5,10 @@ This repository uses a small async TCP networking core (`FreeNet/`) with sample 
 ## Execute-first command set
 
 - Restore/build main solution:
-  - `dotnet restore .\FreeNet.sln`
-  - `dotnet build .\FreeNet.sln -c Debug`
+  - `dotnet restore .\FreeNet.slnx`
+  - `dotnet build .\FreeNet.slnx -c Debug`
 - Build VirusWar server solution:
-  - `dotnet build .\viruswar\server\viruswar_server.sln -c Debug`
+  - `dotnet build .\viruswar\server\viruswar_server.slnx -c Debug`
 - Run sample server/client:
   - `dotnet run --project .\CSampleServer\CSampleServer.csproj`
   - `dotnet run --project .\CSampleClient\CSampleClient.csproj`
@@ -29,11 +29,18 @@ This repository uses a small async TCP networking core (`FreeNet/`) with sample 
 - Always call `record_size()` before sending packets unless using a helper that does so immediately before transport.
 - Parse payload fields in exactly the same order they were pushed.
 - `session_created_callback` may be concurrent; lock shared collections in callback flows.
+- NuGet package versions are centrally managed at repository root via `Directory.Packages.props`.
 
 ## Existing test reality
 
-- No automated test project exists right now.
-- Use sample server/client for smoke checks and `README.md` / `TestManual.md` for manual/load testing flow.
+- Automated tests are in:
+  - `FreeNet.Tests/FreeNet.Tests.csproj`
+  - `CSampleServer.Tests/CSampleServer.Tests.csproj`
+  - `CSampleClient.Tests/CSampleClient.Tests.csproj`
+  - `viruswar/server/GameServer.Tests/GameServer.Tests.csproj`
+- Test runner is Microsoft Testing Platform (MTP) via `global.json`.
+- Run all tests: `dotnet test .\FreeNet.slnx -c Debug`
+- Run VirusWar server tests: `dotnet test .\viruswar\server\viruswar_server.slnx -c Debug`
 
 ## Source of truth
 

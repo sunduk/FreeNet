@@ -24,8 +24,8 @@ Every non-trivial claim must cite file paths.
 
 1. Read `README.md`, `TestManual.md`, `.github/copilot-instructions.md`, and `AGENTS.md`.
 2. Map solutions and projects:
-   - `FreeNet.sln`
-   - `viruswar/server/viruswar_server.sln`
+   - `FreeNet.slnx`
+   - `viruswar/server/viruswar_server.slnx`
    - `*.csproj` under `FreeNet/`, `CSampleServer/`, `CSampleClient/`, `viruswar/server/GameServer/`
 3. Map runtime architecture from:
    - `FreeNet/CNetworkService.cs`
