@@ -15,9 +15,9 @@
         {
           "Documents": [
             {
-              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\README.md",
-              "RelativePath": "..\\..\\README.md",
-              "FullName": "README.md",
+              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\FreeNet\\UserToken.cs",
+              "RelativePath": "..\\..\\FreeNet\\UserToken.cs",
+              "FullName": "UserToken.cs",
               "DockedHeight": {
                 "UnitType": "Stretch",
                 "Value": 200

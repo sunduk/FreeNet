@@ -41,34 +41,34 @@ namespace GameServer
 
         // 게임 상태 관리 매니저.
         // 게임 로직 진행은 각 상태 클래스에서 처리한다.
-        public CStateManager<CPlayer, CPacket> state_manager { get; private set; }
+        public CStateManager<CPlayer, Packet> state_manager { get; private set; }
 
 
         public CGameRoom(CGameRoomManager room_manager)
         {
             this.room_manager = room_manager;
-            this.players = new List<CPlayer>();
-            this.received_protocol = new Dictionary<byte, PROTOCOL>();
-            this.current_turn_player = 0;
+            players = new List<CPlayer>();
+            received_protocol = new Dictionary<byte, PROTOCOL>();
+            current_turn_player = 0;
 
-            this.state_manager = new CStateManager<CPlayer, CPacket>();
-            this.state_manager.add(STATE.READY, new CGameRoomReadyState(this));
-            this.state_manager.add(STATE.PLAY, new CGameRoomPlayState(this));
-            this.state_manager.change_state(STATE.READY);
+            state_manager = new CStateManager<CPlayer, Packet>();
+            state_manager.add(STATE.READY, new CGameRoomReadyState(this));
+            state_manager.add(STATE.PLAY, new CGameRoomPlayState(this));
+            state_manager.change_state(STATE.READY);
         }
 
 
         public void reset()
         {
-            this.current_turn_player = 0;
+            current_turn_player = 0;
         }
 
 
-        public void broadcast(CPacket msg)
+        public void broadcast(Packet msg)
         {
-            for (int i = 0; i < this.players.Count; ++i)
+            for (int i = 0; i < players.Count; ++i)
             {
-                this.players[i].send(msg);
+                players[i].send(msg);
             }
         }
 
@@ -85,7 +85,7 @@ namespace GameServer
                 throw new Exception("Player cannot be null.");
             }
 
-            if (this.players.Count >= 2)
+            if (players.Count >= 2)
             {
                 throw new Exception("This room is not empty.");
             }
@@ -93,33 +93,33 @@ namespace GameServer
             add_player(player1);
             add_player(player2);
 
-            CPacket msg = CPacket.create((short)PROTOCOL.START_LOADING);
+            Packet msg = Packet.Create((short)PROTOCOL.START_LOADING);
             broadcast(msg);
         }
 
 
         void add_player(CPlayer newbie)
         {
-            this.players.Add(newbie);
+            players.Add(newbie);
         }
 
 
         public void destroy()
         {
-            CPacket msg = CPacket.create((short)PROTOCOL.ROOM_REMOVED);
+            Packet msg = Packet.Create((short)PROTOCOL.ROOM_REMOVED);
             broadcast(msg);
 
-            for (int i = 0; i < this.players.Count; ++i)
+            for (int i = 0; i < players.Count; ++i)
             {
-                this.players[i].removed();
+                players[i].removed();
             }
-            this.players.Clear();
+            players.Clear();
         }
 
 
         public void remove_self()
         {
-            this.room_manager.remove_room(this);
+            room_manager.remove_room(this);
         }
 
 
@@ -131,12 +131,12 @@ namespace GameServer
         /// <returns></returns>
         bool is_received(byte player_index, PROTOCOL protocol)
         {
-            if (!this.received_protocol.ContainsKey(player_index))
+            if (!received_protocol.ContainsKey(player_index))
             {
                 return false;
             }
 
-            return this.received_protocol[player_index] == protocol;
+            return received_protocol[player_index] == protocol;
         }
 
 
@@ -147,12 +147,12 @@ namespace GameServer
         /// <param name="protocol"></param>
         void checked_protocol(byte player_index, PROTOCOL protocol)
         {
-            if (this.received_protocol.ContainsKey(player_index))
+            if (received_protocol.ContainsKey(player_index))
             {
                 return;
             }
 
-            this.received_protocol.Add(player_index, protocol);
+            received_protocol.Add(player_index, protocol);
         }
 
 
@@ -166,12 +166,12 @@ namespace GameServer
         /// <returns></returns>
         public bool all_received(PROTOCOL protocol)
         {
-            if (this.received_protocol.Count < this.players.Count)
+            if (received_protocol.Count < players.Count)
             {
                 return false;
             }
 
-            foreach (KeyValuePair<byte, PROTOCOL> kvp in this.received_protocol)
+            foreach (KeyValuePair<byte, PROTOCOL> kvp in received_protocol)
             {
                 if (kvp.Value != protocol)
                 {
@@ -186,7 +186,7 @@ namespace GameServer
 
         public void clear_received_protocol()
         {
-            this.received_protocol.Clear();
+            received_protocol.Clear();
         }
 
 
@@ -196,10 +196,10 @@ namespace GameServer
         /// <param name="player"></param>
         public void on_player_removed(CPlayer player)
         {
-            this.players.Remove(player);
-            if (this.players.Count <= 1)
+            players.Remove(player);
+            if (players.Count <= 1)
             {
-                this.room_manager.remove_room(this);
+                room_manager.remove_room(this);
             }
         }
 
@@ -210,7 +210,7 @@ namespace GameServer
         /// <returns></returns>
         public CPlayer get_current_player()
         {
-            return this.players[this.current_turn_player];
+            return players[current_turn_player];
         }
 
 
@@ -218,39 +218,39 @@ namespace GameServer
         {
             if (get_current_player().player_index < get_player_count() - 1)
             {
-                ++this.current_turn_player;
+                ++current_turn_player;
             }
             else
             {
                 // 다시 첫번째 플레이어의 턴으로 만들어 준다.
-                this.current_turn_player = get_player(0).player_index;
+                current_turn_player = get_player(0).player_index;
             }
         }
 
 
         public CPlayer get_player(byte player_index)
         {
-            return this.players[player_index];
+            return players[player_index];
         }
 
 
         public List<CPlayer> get_players()
         {
-            return this.players;
+            return players;
         }
 
 
         public int get_player_count()
         {
-            return this.players.Count;
+            return players.Count;
         }
 
 
         public void each_player(Action<CPlayer> function)
         {
-            for (int i = 0; i < this.players.Count; ++i)
+            for (int i = 0; i < players.Count; ++i)
             {
-                function(this.players[i]);
+                function(players[i]);
             }
         }
 
@@ -263,10 +263,10 @@ namespace GameServer
         {
             if (who.player_index == 0)
             {
-                return this.players[1];
+                return players[1];
             }
 
-            return this.players[0];
+            return players[0];
         }
 
 
@@ -287,16 +287,16 @@ namespace GameServer
         /// <returns></returns>
         public bool is_current_player(CPlayer sender)
         {
-            return this.current_turn_player == sender.player_index;
+            return current_turn_player == sender.player_index;
         }
 
 
         //--------------------------------------------------------
         // Handler.
         //--------------------------------------------------------
-        public void on_receive(CPlayer owner, CPacket msg)
+        public void on_receive(CPlayer owner, Packet msg)
         {
-            PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
+            PROTOCOL protocol = (PROTOCOL)msg.PopProtocolId();
             if (is_received(owner.player_index, protocol))
             {
                 // 플레이어가 이미 해당 프로토콜을 전송했다. 중복 처리 하지 않고 리턴한다.
@@ -308,7 +308,7 @@ namespace GameServer
 
             // 상태 매니저에 패킷을 보낸 플레이어와 패킷 내용을 전달한다.
             // 이후 게임 로직은 상태 매니저를 통해 현재 수행중인 상태 객체에서 처리된다.
-            this.state_manager.send_state_message(protocol, owner, msg);
+            state_manager.send_state_message(protocol, owner, msg);
         }
 
 

@@ -10,6 +10,6 @@ namespace GameServer.RoomState
 
     public interface IRoomState
     {
-        void on_receive(PROTOCOL protocol, CPlayer owner, CPacket msg);
+        void on_receive(PROTOCOL protocol, CPlayer owner, Packet msg);
     }
 }

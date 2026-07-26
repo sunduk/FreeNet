@@ -16,14 +16,14 @@ namespace GameServer.UserState
             this.owner = owner;
         }
 
-        void IUserState.on_message(FreeNet.CPacket msg)
+        void IUserState.on_message(FreeNet.Packet msg)
         {
-            PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
+            PROTOCOL protocol = (PROTOCOL)msg.PopProtocolId();
             Console.WriteLine("protocol id " + protocol);
             switch (protocol)
             {
                 case PROTOCOL.ENTER_GAME_ROOM_REQ:
-                    Program.game_main.matching_req(this.owner);
+                    Program.game_main.matching_req(owner);
                     break;
             }
         }

@@ -24,13 +24,13 @@ namespace GameServer
         public CPlayerMovingData(byte player_index, float x, float y, float z)
         {
             this.player_index = player_index;
-            this.position_x = x;
-            this.position_y = y;
-            this.position_z = z;
+            position_x = x;
+            position_y = y;
+            position_z = z;
 
             foreach (MOVE_DIRECTION e in Enum.GetValues(typeof(MOVE_DIRECTION)))
             {
-                this.accelerations.Add(e, 0.0f);
+                accelerations.Add(e, 0.0f);
             }
         }
 
