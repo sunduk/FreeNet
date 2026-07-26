@@ -45,7 +45,7 @@ jobs:
         run: dotnet test ${{ matrix.solution }} -c Debug --no-build --results-directory ./TestResults/${{ matrix.name }} --coverage --coverage-output coverage.cobertura.xml --coverage-output-format cobertura
 
       - name: Upload coverage for ${{ matrix.name }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-${{ matrix.name }}
           path: TestResults/${{ matrix.name }}/coverage.cobertura.xml
@@ -70,13 +70,13 @@ jobs:
 
     steps:
       - name: Download coverage artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: coverage-*
           path: coverage
 
       - name: Comment coverage summary
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
