@@ -16,12 +16,12 @@ namespace GameServer
 		{
 			userlist = new List<CGameUser>();
 
-			CNetworkService service = new CNetworkService(true);
+			NetworkService service = new NetworkService(true);
 			// 콜백 매소드 설정.
-			service.session_created_callback += on_session_created;
+			service.SessionCreatedCallback += on_session_created;
 			// 초기화.
-			service.initialize(10000, 1024);
-			service.listen("0.0.0.0", 20000, 100);
+			service.Initialize(10000, 1024);
+			service.Listen("0.0.0.0", 20000, 100);
 
 
             Console.WriteLine("Started!");
@@ -34,7 +34,7 @@ namespace GameServer
 		}
 
 
-		static void on_session_created(CUserToken token)
+		static void on_session_created(UserToken token)
 		{
 			CGameUser user = new CGameUser(token);
 			lock (userlist)

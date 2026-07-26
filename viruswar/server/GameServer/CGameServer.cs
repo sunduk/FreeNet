@@ -20,8 +20,8 @@ namespace GameServer
 
 		public CGameServer()
 		{
-            this.room_manager = new CGameRoomManager();
-            this.matching_waiting_users = new List<CGameUser>();
+            room_manager = new CGameRoomManager();
+            matching_waiting_users = new List<CGameUser>();
 		}
 
 
@@ -32,28 +32,28 @@ namespace GameServer
         public void matching_req(CGameUser user)
         {
             // 대기 리스트에 중복 추가 되지 않도록 체크.
-			if (this.matching_waiting_users.Contains(user))
+			if (matching_waiting_users.Contains(user))
 			{
 				return;
 			}
 
             // 매칭 대기 리스트에 추가.
-            this.matching_waiting_users.Add(user);
+            matching_waiting_users.Add(user);
 
             // 2명이 모이면 매칭 성공.
-            if (this.matching_waiting_users.Count == 2)
+            if (matching_waiting_users.Count == 2)
             {
                 // 게임 방 생성.
-                this.room_manager.create_room(this.matching_waiting_users[0], this.matching_waiting_users[1]);
+                room_manager.create_room(matching_waiting_users[0], matching_waiting_users[1]);
 
                 // 매칭 대기 리스트 삭제.
-                this.matching_waiting_users.Clear();
+                matching_waiting_users.Clear();
             }
             else
             {
                 // 매칭 인원이 모자를 경우 대기 메시지 전송.
-                CPacket msg = CPacket.create((short)PROTOCOL.ENTER_GAME_ROOM_ACK);
-                user.send(msg);
+                Packet msg = Packet.Create((short)PROTOCOL.ENTER_GAME_ROOM_ACK);
+                user.Send(msg);
             }
         }
 
@@ -64,9 +64,9 @@ namespace GameServer
         /// <param name="user"></param>
 		public void user_disconnected(CGameUser user)
 		{
-			if (this.matching_waiting_users.Contains(user))
+			if (matching_waiting_users.Contains(user))
 			{
-				this.matching_waiting_users.Remove(user);
+				matching_waiting_users.Remove(user);
 			}
 		}
 	}

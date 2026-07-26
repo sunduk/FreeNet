@@ -11,46 +11,46 @@ namespace CSampleClient
 
     class CRemoteServerPeer : IPeer
     {
-        public CUserToken token { get; private set; }
+        public UserToken token { get; private set; }
 
-        public CRemoteServerPeer(CUserToken token)
+        public CRemoteServerPeer(UserToken token)
         {
             this.token = token;
-            this.token.set_peer(this);
+            this.token.SetPeer(this);
         }
 
         int recv_count = 0;
-        void IPeer.on_message(CPacket msg)
+        void IPeer.OnMessage(Packet msg)
         {
-            System.Threading.Interlocked.Increment(ref this.recv_count);
+            System.Threading.Interlocked.Increment(ref recv_count);
 
-            PROTOCOL protocol_id = (PROTOCOL)msg.pop_protocol_id();
+            PROTOCOL protocol_id = (PROTOCOL)msg.PopProtocolId();
             switch (protocol_id)
             {
                 case PROTOCOL.CHAT_MSG_ACK:
                     {
-                        string text = msg.pop_string();
+                        string text = msg.PopString();
                         Console.WriteLine(string.Format("text {0}", text));
                     }
                     break;
             }
         }
 
-        void IPeer.on_removed()
+        void IPeer.OnRemoved()
         {
             Console.WriteLine("Server removed.");
-            Console.WriteLine("recv count " + this.recv_count);
+            Console.WriteLine("recv count " + recv_count);
         }
 
-        void IPeer.send(CPacket msg)
+        void IPeer.Send(Packet msg)
         {
-            msg.record_size();
-            this.token.send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
+            msg.RecordSize();
+            token.Send(new ArraySegment<byte>(msg.Buffer, 0, msg.Position));
         }
 
-        void IPeer.disconnect()
+        void IPeer.Disconnect()
         {
-            this.token.disconnect();
+            token.Disconnect();
         }
     }
 }

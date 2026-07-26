@@ -13,7 +13,7 @@ namespace GameServer
 {
     public class CPlayer
     {
-        public delegate void SendFn(CPacket msg);
+        public delegate void SendFn(Packet msg);
 
         IPeer owner;
 
@@ -22,44 +22,44 @@ namespace GameServer
 
         public CPlayer(CGameUser user, byte player_index)
         {
-            this.owner = user;
+            owner = user;
             this.player_index = player_index;
-            this.viruses = new List<short>();
+            viruses = new List<short>();
         }
 
         public void reset()
         {
-            this.viruses.Clear();
+            viruses.Clear();
         }
 
         public void add_cell(short position)
         {
-            this.viruses.Add(position);
+            viruses.Add(position);
         }
 
         public void remove_cell(short position)
         {
-            this.viruses.Remove(position);
+            viruses.Remove(position);
         }
 
-        public void send(CPacket msg)
+        public void send(Packet msg)
         {
-            this.owner.send(msg);
+            owner.Send(msg);
         }
 
         public int get_virus_count()
         {
-            return this.viruses.Count;
+            return viruses.Count;
         }
 
         public void removed()
         {
-            ((CGameUser)this.owner).change_state(UserState.USER_STATE_TYPE.LOBBY);
+            ((CGameUser)owner).change_state(UserState.USER_STATE_TYPE.LOBBY);
         }
 
         public void disconnect()
         {
-            this.owner.disconnect();
+            owner.Disconnect();
         }
     }
 }

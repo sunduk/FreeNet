@@ -16,6 +16,6 @@ namespace GameServer.UserState
 
     interface IUserState
     {
-        void on_message(CPacket msg);
+        void on_message(Packet msg);
     }
 }

@@ -14,38 +14,38 @@ namespace CSampleServer
     /// </summary>
     class CGameUser : IPeer
     {
-        CUserToken token;
+        UserToken token;
 
-        public CGameUser(CUserToken token)
+        public CGameUser(UserToken token)
         {
             this.token = token;
-            this.token.set_peer(this);
+            this.token.SetPeer(this);
         }
 
-        void IPeer.on_removed()
+        void IPeer.OnRemoved()
         {
             //Console.WriteLine("The client disconnected.");
 
             Program.remove_user(this);
         }
 
-        public void send(CPacket msg)
+        public void Send(Packet msg)
         {
-            msg.record_size();
-            this.token.send(new ArraySegment<byte>(msg.buffer, 0, msg.position));
+            msg.RecordSize();
+            token.Send(new ArraySegment<byte>(msg.Buffer, 0, msg.Position));
         }
 
         public void send(ArraySegment<byte> data)
         {
-            this.token.send(data);
+            token.Send(data);
         }
 
-        void IPeer.disconnect()
+        void IPeer.Disconnect()
         {
-            this.token.ban();
+            token.Ban();
         }
 
-        void IPeer.on_message(CPacket msg)
+        void IPeer.OnMessage(Packet msg)
         {
             // 에코서버 테스트할 때 사용함.
             // Remove below comments to use echo server.
@@ -53,31 +53,31 @@ namespace CSampleServer
             //return;
 
             // ex)
-            PROTOCOL protocol = (PROTOCOL)msg.pop_protocol_id();
+            PROTOCOL protocol = (PROTOCOL)msg.PopProtocolId();
             //Console.WriteLine("------------------------------------------------------");
             //Console.WriteLine("protocol id " + protocol);
             switch (protocol)
             {
                 case PROTOCOL.CHAT_MSG_REQ:
                     {
-                        string text = msg.pop_string();
+                        string text = msg.PopString();
                         Console.WriteLine(string.Format("text {0}", text));
 
-                        CPacket response = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
-                        response.push(text);
-                        send(response);
+                        Packet response = Packet.Create((short)PROTOCOL.CHAT_MSG_ACK);
+                        response.Push(text);
+                        Send(response);
 
                         if (text.Equals("exit"))
                         {
                             // 대량의 메시지를 한꺼번에 보낸 후 종료하는 시나리오 테스트.
                             for (int i = 0; i < 1000; ++i)
                             {
-                                CPacket dummy = CPacket.create((short)PROTOCOL.CHAT_MSG_ACK);
-                                dummy.push(i.ToString());
-                                send(dummy);
+                                Packet dummy = Packet.Create((short)PROTOCOL.CHAT_MSG_ACK);
+                                dummy.Push(i.ToString());
+                                Send(dummy);
                             }
 
-                            this.token.ban();
+                            token.Ban();
                         }
                     }
                     break;

@@ -8,35 +8,35 @@ public class CMessageDispatcher<T, T2>
 
     public CMessageDispatcher()
     {
-        this.handlers = new Dictionary<Enum, MessageHandlerDelegate<T, T2>>();
+        handlers = new Dictionary<Enum, MessageHandlerDelegate<T, T2>>();
     }
 
 
     public void register(Enum key, MessageHandlerDelegate<T, T2> fn)
     {
-        if (!this.handlers.ContainsKey(key))
+        if (!handlers.ContainsKey(key))
         {
-            this.handlers.Add(key, fn);
+            handlers.Add(key, fn);
             return;
         }
 
-        this.handlers[key] = fn;
+        handlers[key] = fn;
     }
 
 
     public void unregister(Enum key)
     {
-        this.handlers.Remove(key);
+        handlers.Remove(key);
     }
 
 
     public void dispatch(Enum key, T t1, T2 t2)
     {
-        if (!this.handlers.ContainsKey(key))
+        if (!handlers.ContainsKey(key))
         {
             return;
         }
 
-        this.handlers[key](t1, t2);
+        handlers[key](t1, t2);
     }
 }

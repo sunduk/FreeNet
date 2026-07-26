@@ -8,35 +8,35 @@ public class PacketTests
     [Test]
     public async Task Packet_round_trip_preserves_payload()
     {
-        var packet = CPacket.create(100);
-        packet.push((short)7);
-        packet.push(42);
-        packet.push("hello");
-        packet.record_size();
+        var packet = Packet.Create(100);
+        packet.Push((short)7);
+        packet.Push(42);
+        packet.Push("hello");
+        packet.RecordSize();
 
-        var parsed = new CPacket(new ArraySegment<byte>(packet.buffer, 0, packet.position), null!);
+        var parsed = new Packet(new ArraySegment<byte>(packet.Buffer, 0, packet.Position), null!);
 
-        await Assert.That(parsed.protocol_id).IsEqualTo((short)100);
-        await Assert.That(parsed.pop_protocol_id()).IsEqualTo((short)100);
-        await Assert.That(parsed.pop_int16()).IsEqualTo((short)7);
-        await Assert.That(parsed.pop_int32()).IsEqualTo(42);
-        await Assert.That(parsed.pop_string()).IsEqualTo("hello");
+        await Assert.That(parsed.ProtocolId).IsEqualTo((short)100);
+        await Assert.That(parsed.PopProtocolId()).IsEqualTo((short)100);
+        await Assert.That(parsed.PopInt16()).IsEqualTo((short)7);
+        await Assert.That(parsed.PopInt32()).IsEqualTo(42);
+        await Assert.That(parsed.PopString()).IsEqualTo("hello");
     }
 
     [Test]
     public void Close_ack_message_notifies_peer()
     {
         var peer = Substitute.For<IPeer>();
-        var token = new CUserToken(null!);
-        token.set_peer(peer);
+        var token = new UserToken(null!);
+        token.SetPeer(peer);
 
-        var closeAck = CPacket.create(-1);
-        closeAck.record_size();
-        var message = new CPacket(new ArraySegment<byte>(closeAck.buffer, 0, closeAck.position), token);
+        var closeAck = Packet.Create(-1);
+        closeAck.RecordSize();
+        var message = new Packet(new ArraySegment<byte>(closeAck.Buffer, 0, closeAck.Position), token);
 
-        token.on_message(message);
+        token.OnMessage(message);
 
-        peer.Received(1).on_removed();
+        peer.Received(1).OnRemoved();
     }
 
     [Test]

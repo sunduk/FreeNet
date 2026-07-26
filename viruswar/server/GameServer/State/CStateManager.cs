@@ -30,54 +30,54 @@ public class CStateManager<T, T2>
 
     public CStateManager()
     {
-        this.message_dispatcher = new Dictionary<IState, CMessageDispatcher<T, T2>>();
+        message_dispatcher = new Dictionary<IState, CMessageDispatcher<T, T2>>();
     }
 
 
     public void register_message_handler(IState state, Enum key, MessageHandlerDelegate<T, T2> fn)
     {
-        if (!this.message_dispatcher.ContainsKey(state))
+        if (!message_dispatcher.ContainsKey(state))
         {
-            this.message_dispatcher.Add(state, new CMessageDispatcher<T, T2>());
+            message_dispatcher.Add(state, new CMessageDispatcher<T, T2>());
         }
 
-        this.message_dispatcher[state].register(key, fn);
+        message_dispatcher[state].register(key, fn);
     }
 
 
     public void unregister_message_handler(IState state, Enum key)
     {
-        if (!this.message_dispatcher.ContainsKey(state))
+        if (!message_dispatcher.ContainsKey(state))
         {
             return;
         }
 
-        this.message_dispatcher[state].unregister(key);
+        message_dispatcher[state].unregister(key);
     }
 
 
     public void add(Enum key, IState state)
     {
-        if (!this.states.ContainsKey(key))
+        if (!states.ContainsKey(key))
         {
-            this.states.Add(key, state);
+            states.Add(key, state);
             return;
         }
 
-        this.states[key] = state;
+        states[key] = state;
     }
 
 
     public void change_state(Enum next_state)
     {
-        if (this.current_state != null)
+        if (current_state != null)
         {
-            this.current_state.on_exit();
+            current_state.on_exit();
         }
 
-        this.current_state_type = next_state;
-        this.current_state = this.states[next_state];
-        this.current_state.on_enter();
+        current_state_type = next_state;
+        current_state = states[next_state];
+        current_state.on_enter();
     }
 
 
@@ -89,22 +89,22 @@ public class CStateManager<T, T2>
     /// <param name="t2"></param>
     public void send_state_message(System.Enum message, T t1, T2 t2)
     {
-        if (this.current_state == null)
+        if (current_state == null)
         {
             return;
         }
 
-        if (!this.message_dispatcher.ContainsKey(this.current_state))
+        if (!message_dispatcher.ContainsKey(current_state))
         {
             return;
         }
 
-        this.message_dispatcher[this.current_state].dispatch(message, t1, t2);
+        message_dispatcher[current_state].dispatch(message, t1, t2);
     }
 
 
     public bool is_current_state(System.Enum state)
     {
-        return Enum.Equals(this.current_state_type, state);
+        return Enum.Equals(current_state_type, state);
     }
 }

@@ -17,7 +17,7 @@ namespace GameServer.RoomState
         {
             this.room = room;
 
-            this.room.state_manager.register_message_handler(this, PROTOCOL.READY_TO_START, this.on_ready_req);
+            this.room.state_manager.register_message_handler(this, PROTOCOL.READY_TO_START, on_ready_req);
         }
 
 
@@ -31,14 +31,14 @@ namespace GameServer.RoomState
         }
 
 
-        void on_ready_req(CPlayer sender, CPacket msg)
+        void on_ready_req(CPlayer sender, Packet msg)
         {
-            if (!this.room.all_received(PROTOCOL.READY_TO_START))
+            if (!room.all_received(PROTOCOL.READY_TO_START))
             {
                 return;
             }
 
-            this.room.state_manager.change_state(CGameRoom.STATE.PLAY);
+            room.state_manager.change_state(CGameRoom.STATE.PLAY);
         }
     }
 }

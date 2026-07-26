@@ -15,7 +15,7 @@ namespace GameServer
 
         public CGameRoomManager()
         {
-            this.rooms = new List<CGameRoom>();
+            rooms = new List<CGameRoom>();
         }
 
 
@@ -28,7 +28,7 @@ namespace GameServer
         {
             // 게임 방을 생성하여 입장 시킴.
             CGameRoom battleroom = new CGameRoom(this);
-            this.rooms.Add(battleroom);
+            rooms.Add(battleroom);
 
             user1.enter_room(battleroom, 0);
             user2.enter_room(battleroom, 1);
@@ -39,7 +39,7 @@ namespace GameServer
         public void remove_room(CGameRoom room)
         {
             room.destroy();
-            this.rooms.Remove(room);
+            rooms.Remove(room);
         }
     }
 }
