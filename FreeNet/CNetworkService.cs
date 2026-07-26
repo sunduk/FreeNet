@@ -237,28 +237,25 @@ namespace FreeNet
         private void process_receive(SocketAsyncEventArgs e)
         {
             CUserToken token = e.UserToken as CUserToken;
-            if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+            while (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
                 token.on_receive(e.Buffer, e.Offset, e.BytesTransferred);
 
                 // Keep receive.
                 bool pending = token.socket.ReceiveAsync(e);
-                if (!pending)
+                if (pending)
                 {
-                    // Oh! stack overflow??
-                    process_receive(e);
+                    return;
                 }
             }
-            else
+
+            try
             {
-                try
-                {
-                    token.close();
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Already closed this socket.");
-                }
+                token.close();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Already closed this socket.");
             }
         }
 
