@@ -47,3 +47,9 @@ This repository uses a small async TCP networking core (`FreeNet/`) with sample 
 - For Copilot-specific behavior, also follow `.github/copilot-instructions.md`.
 - Reusable local skills are in `skills/` (see `skills/README.md`).
 - For workflows with multiple tool paths (CLI/MCP/etc.), prefer whichever path minimizes token usage while preserving correctness.
+
+## Pull request workflow
+
+- When creating PRs, assign them to the current user/requester.
+- Add the most appropriate labels for the change.
+- Set a milestone when one applies.
