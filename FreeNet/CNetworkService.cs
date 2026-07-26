@@ -237,6 +237,11 @@ namespace FreeNet
         private void process_receive(SocketAsyncEventArgs e)
         {
             CUserToken token = e.UserToken as CUserToken;
+            if (token == null)
+            {
+                return;
+            }
+
             while (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
                 token.on_receive(e.Buffer, e.Offset, e.BytesTransferred);
