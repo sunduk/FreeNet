@@ -1,10 +1,18 @@
 ﻿using CSampleServer;
+
 using FreeNet;
 
 NetworkService service = new(false);
 
 // 콜백 매소드 설정.
-service.SessionCreatedCallback += OnSessionCreated;
+service.SessionCreatedCallback += token =>
+{
+    GameUser user = new(token);
+    lock (Users)
+    {
+        Users.Add(user);
+    }
+};
 
 // 초기화.
 service.Initialize(10000, 1024);
@@ -29,30 +37,15 @@ while (true)
     Thread.Sleep(1000);
 }
 
-//Console.ReadKey();
-
 internal partial class Program
 {
-    private static readonly List<CGameUser> Userlist = [];
+    private static readonly List<GameUser> Users = [];
 
-    public static void RemoveUser(CGameUser user)
+    public static void RemoveUser(GameUser user)
     {
-        lock (Userlist)
+        lock (Users)
         {
-            _ = Userlist.Remove(user);
-        }
-    }
-
-    /// <summary>
-    /// 클라이언트가 접속 완료 하였을 때 호출됩니다. n개의 워커 스레드에서 호출될 수 있으므로 공유 자원 접근시 동기화 처리를 해줘야 합니다.
-    /// </summary>
-    /// <returns></returns>
-    public static void OnSessionCreated(UserToken token)
-    {
-        CGameUser user = new(token);
-        lock (Userlist)
-        {
-            Userlist.Add(user);
+            _ = Users.Remove(user);
         }
     }
 }
