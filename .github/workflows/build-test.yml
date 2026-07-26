@@ -50,6 +50,15 @@ jobs:
           name: coverage-${{ matrix.name }}
           path: TestResults/${{ matrix.name }}/coverage.cobertura.xml
 
+      - name: Publish coverage summary for ${{ matrix.name }}
+        run: |
+          {
+            echo "## Coverage (${{ matrix.name }})"
+            echo ""
+            echo "- Artifact: \`coverage-${{ matrix.name }}\`"
+            echo "- Report: \`TestResults/${{ matrix.name }}/coverage.cobertura.xml\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   coverage-comment:
     runs-on: ubuntu-latest
     needs: build-test
@@ -140,3 +149,17 @@ jobs:
                 body: fullBody,
               });
             }
+
+      - name: Publish aggregated coverage summary
+        run: |
+          {
+            echo "## Coverage summary"
+            echo ""
+            echo "| Artifact | Coverage |"
+            echo "| --- | ---: |"
+            for file in coverage/**/coverage.cobertura.xml; do
+              artifact=$(basename "$(dirname "$file")")
+              percent=$(python -c "import re, sys; from pathlib import Path; xml = Path(sys.argv[1]).read_text(encoding='utf-8'); m = re.search(r'line-rate=\"([0-9.]+)\"', xml); print(f'{float(m.group(1)) * 100:.2f}%')" "$file")
+              echo "| $artifact | $percent |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
