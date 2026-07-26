@@ -1,0 +1,45 @@
+name: build-test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: main
+            solution: FreeNet.slnx
+          - name: viruswar
+            solution: viruswar/server/viruswar_server.slnx
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            Directory.Packages.props
+            **/*.csproj
+            **/*.slnx
+
+      - name: Restore ${{ matrix.name }}
+        run: dotnet restore ${{ matrix.solution }}
+
+      - name: Build ${{ matrix.name }}
+        run: dotnet build ${{ matrix.solution }} -c Debug --no-restore
+
+      - name: Test ${{ matrix.name }}
+        run: dotnet test ${{ matrix.solution }} -c Debug --no-build
