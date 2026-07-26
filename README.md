@@ -19,3 +19,17 @@ Structure
   * Single logic thread packet processing method.
 * Additional Features
   * Heartbeat functionality.
+
+Version
+=========
+* v0.1.2
+* v0.1.1 Apply .Net Core
+* v0.1.0 Heartbeat
+* v0.0.1
+
+Semantic Versioning
+=========
+* FreeNet follows [SemVer](https://semver.org/) (`MAJOR.MINOR.PATCH`).
+* Build outputs automatically include generated semantic versions:
+  * `Release` builds: `MAJOR.MINOR.PATCH`
+  * non-`Release` builds: `MAJOR.MINOR.PATCH-dev.<UTC timestamp>`
