@@ -1,4 +1,3 @@
-using GameServer;
 using VerifyTests;
 
 namespace CSampleServer.Tests;

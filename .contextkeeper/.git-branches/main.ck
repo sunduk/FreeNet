@@ -15,9 +15,9 @@
         {
           "Documents": [
             {
-              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\FreeNet\\UserToken.cs",
-              "RelativePath": "..\\..\\FreeNet\\UserToken.cs",
-              "FullName": "UserToken.cs",
+              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\CSampleServer\\CGameUser.cs",
+              "RelativePath": "..\\..\\CSampleServer\\CGameUser.cs",
+              "FullName": "CGameUser.cs",
               "DockedHeight": {
                 "UnitType": "Stretch",
                 "Value": 200
@@ -26,8 +26,8 @@
                 "UnitType": "Stretch",
                 "Value": 259
               },
-              "Line": 1,
-              "Column": 1,
+              "Line": 14,
+              "Column": 9,
               "IsPinned": false,
               "IsActive": true,
               "IsSelected": true
