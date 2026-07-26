@@ -1,0 +1,6 @@
+Follow `AGENTS.md` for repository-specific guidance.
+
+Priorities:
+1. Keep FreeNet packet protocol/framing behavior unchanged unless explicitly requested.
+2. Maintain compatibility between `FreeNet/`, `CSampleServer/`, `CSampleClient/`, and `viruswar/server/GameServer/`.
+3. Use existing build/run commands from `AGENTS.md`; no new toolchain assumptions.
