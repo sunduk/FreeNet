@@ -152,8 +152,7 @@ namespace FreeNet
 
         public void push(byte data)
         {
-            byte[] temp_buffer = BitConverter.GetBytes(data);
-            temp_buffer.CopyTo(this.buffer, this.position);
+            this.buffer[this.position] = data;
             this.position += sizeof(byte);
         }
 

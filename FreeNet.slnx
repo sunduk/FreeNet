@@ -1,0 +1,19 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/viruswar/">
+    <Project Path="viruswar/server/GameServer/GameServer.csproj" />
+  </Folder>
+  <Folder Name="/viruswar/server/">
+    <Project Path="viruswar/server/GameServer.Tests/GameServer.Tests.csproj" />
+  </Folder>
+  <Project Path="CSampleClient.Tests/CSampleClient.Tests.csproj" />
+  <Project Path="CSampleClient/CSampleClient.csproj" />
+  <Project Path="CSampleServer.Tests/CSampleServer.Tests.csproj" />
+  <Project Path="CSampleServer/CSampleServer.csproj" />
+  <Project Path="FreeNet.Tests/FreeNet.Tests.csproj" />
+  <Project Path="FreeNet/FreeNet.csproj" />
+</Solution>

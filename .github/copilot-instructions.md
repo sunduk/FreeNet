@@ -4,10 +4,10 @@
 
 ### Build
 - Restore/build the main solution:
-  - `dotnet restore .\FreeNet.sln`
-  - `dotnet build .\FreeNet.sln -c Debug`
+  - `dotnet restore .\FreeNet.slnx`
+  - `dotnet build .\FreeNet.slnx -c Debug`
 - Build the VirusWar server solution:
-  - `dotnet build .\viruswar\server\viruswar_server.sln -c Debug`
+  - `dotnet build .\viruswar\server\viruswar_server.slnx -c Debug`
 
 ### Run samples
 - Start sample server:
@@ -16,12 +16,14 @@
   - `dotnet run --project .\CSampleClient\CSampleClient.csproj`
 
 ### Tests
-- There are currently no automated test projects in this repository (`dotnet test` has no test targets).
-- Existing validation is manual/load-style and documented in `README.md` and `TestManual.md` (sample server + external test client flow).
-- Closest equivalent to a single-test run is a one-message sample-client smoke check:
-  1. Run `dotnet run --project .\CSampleServer\CSampleServer.csproj`
-  2. In another terminal run `dotnet run --project .\CSampleClient\CSampleClient.csproj`
-  3. Send one chat line from the client and verify one `CHAT_MSG_ACK` response.
+- Run all tests:
+  - `dotnet test .\FreeNet.slnx -c Debug`
+- Run VirusWar server tests:
+  - `dotnet test .\viruswar\server\viruswar_server.slnx -c Debug`
+- Run a single test project:
+  - `dotnet test .\FreeNet.Tests\FreeNet.Tests.csproj -c Debug`
+- Test runner is Microsoft Testing Platform (MTP) via `global.json`.
+- Manual/load validation flow is still documented in `README.md` and `TestManual.md` for socket stress scenarios.
 
 ### Lint/format
 - No dedicated lint configuration is present in the repository (no `.editorconfig`, no lint scripts, no analyzer config files).
@@ -65,3 +67,4 @@
 - For non-FreeNet test clients, heartbeat may need to be disabled in sample server (`service.disable_heartbeat()`), matching repository README guidance.
 - For quick transport validation, sample server includes an optional echo path in `CSampleServer/CGameUser.cs` (commented toggle).
 - Keep protocol enums and parser usage aligned across client/server projects (`CSampleServer/protocol.cs`, `CSampleClient/protocol.cs`, `viruswar/server/GameServer/protocol.cs`).
+- NuGet package versions are centrally managed via `Directory.Packages.props`; add/update versions there rather than per-project.

@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="NSubstitute" Version="6.0.0" />
+    <PackageVersion Include="TUnit" Version="1.61.38" />
+    <PackageVersion Include="Verify.TUnit" Version="31.27.0" />
+  </ItemGroup>
+</Project>
