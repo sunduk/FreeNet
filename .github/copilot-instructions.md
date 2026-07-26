@@ -68,3 +68,9 @@
 - For quick transport validation, sample server includes an optional echo path in `CSampleServer/CGameUser.cs` (commented toggle).
 - Keep protocol enums and parser usage aligned across client/server projects (`CSampleServer/protocol.cs`, `CSampleClient/protocol.cs`, `viruswar/server/GameServer/protocol.cs`).
 - NuGet package versions are centrally managed via `Directory.Packages.props`; add/update versions there rather than per-project.
+
+## Pull request workflow
+
+- When creating PRs, assign them to the current user/requester.
+- Add the most appropriate labels for the change.
+- Set a milestone when one applies.
