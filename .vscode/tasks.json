@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "restore: FreeNet.sln",
+      "type": "shell",
+      "command": "dotnet restore .\\FreeNet.sln",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: FreeNet.sln (Debug)",
+      "type": "shell",
+      "command": "dotnet build .\\FreeNet.sln -c Debug",
+      "problemMatcher": "$msCompile",
+      "dependsOn": "restore: FreeNet.sln"
+    },
+    {
+      "label": "build: viruswar_server.sln (Debug)",
+      "type": "shell",
+      "command": "dotnet build .\\viruswar\\server\\viruswar_server.sln -c Debug",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "run: sample server",
+      "type": "shell",
+      "command": "dotnet run --project .\\CSampleServer\\CSampleServer.csproj",
+      "problemMatcher": []
+    },
+    {
+      "label": "run: sample client",
+      "type": "shell",
+      "command": "dotnet run --project .\\CSampleClient\\CSampleClient.csproj",
+      "problemMatcher": []
+    }
+  ]
+}
