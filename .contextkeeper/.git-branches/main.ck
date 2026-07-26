@@ -15,9 +15,9 @@
         {
           "Documents": [
             {
-              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\CSampleServer\\CGameUser.cs",
-              "RelativePath": "..\\..\\CSampleServer\\CGameUser.cs",
-              "FullName": "CGameUser.cs",
+              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\CSampleServer\\Program.cs",
+              "RelativePath": "..\\..\\CSampleServer\\Program.cs",
+              "FullName": "Program.cs",
               "DockedHeight": {
                 "UnitType": "Stretch",
                 "Value": 200
@@ -26,8 +26,8 @@
                 "UnitType": "Stretch",
                 "Value": 259
               },
-              "Line": 14,
-              "Column": 9,
+              "Line": 51,
+              "Column": 2,
               "IsPinned": false,
               "IsActive": true,
               "IsSelected": true

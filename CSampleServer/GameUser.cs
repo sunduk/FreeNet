@@ -5,23 +5,24 @@ namespace CSampleServer;
 /// <summary>
 /// 하나의 session객체를 나타낸다.
 /// </summary>
-internal class CGameUser : IPeer
+internal class GameUser : IPeer
 {
     private readonly UserToken _token;
 
-    public CGameUser(UserToken token)
+    public GameUser(UserToken token)
     {
         _token = token;
         _token.SetPeer(this);
     }
 
-    void IPeer.Disconnect()
+    /// <inheritdoc/>
+    public void Disconnect()
     {
         _token.Ban();
     }
 
     /// <inheritdoc/>
-    void IPeer.OnMessage(Packet msg)
+    public void OnMessage(Packet msg)
     {
         // 에코서버 테스트할 때 사용함.
         // Remove below comments to use echo server.
@@ -29,10 +30,10 @@ internal class CGameUser : IPeer
         //return;
 
         // ex)
-        PROTOCOL protocol = (PROTOCOL)msg.PopProtocolId();
+        PROTOCOL protocolId = (PROTOCOL)msg.PopProtocolId();
         //Console.WriteLine("------------------------------------------------------");
-        //Console.WriteLine("protocol id " + protocol);
-        switch (protocol)
+        //Console.WriteLine("protocol id " + protocolId);
+        switch (protocolId)
         {
             case PROTOCOL.CHAT_MSG_REQ:
                 {
@@ -62,7 +63,7 @@ internal class CGameUser : IPeer
     }
 
     /// <inheritdoc/>
-    void IPeer.OnRemoved()
+    public void OnRemoved()
     {
         //Console.WriteLine("The client disconnected.");
 

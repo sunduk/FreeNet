@@ -1,5 +1,3 @@
-using GameServer;
-
 namespace CSampleClient.Tests;
 
 public class ProtocolTests
