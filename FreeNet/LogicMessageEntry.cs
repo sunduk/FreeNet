@@ -27,7 +27,10 @@ public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
     /// </summary>
     public void Start()
     {
-        Thread logic = new(DoLogic);
+        Thread logic = new(DoLogic)
+        {
+            IsBackground = true
+        };
         logic.Start();
     }
 

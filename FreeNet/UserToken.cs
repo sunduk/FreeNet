@@ -148,11 +148,18 @@ public class UserToken(IMessageDispatcher dispatcher)
         }
 
         _currentState = State.Closed;
-        Socket.Close();
+        Socket?.Close();
         Socket = null;
 
-        SendEventArgs.UserToken = null;
-        ReceiveEventArgs.UserToken = null;
+        if (SendEventArgs is not null)
+        {
+            SendEventArgs.UserToken = null;
+        }
+
+        if (ReceiveEventArgs is not null)
+        {
+            ReceiveEventArgs.UserToken = null;
+        }
 
         _sendingList.Clear();
         _messageResolver.ClearBuffer();
@@ -294,8 +301,8 @@ public class UserToken(IMessageDispatcher dispatcher)
     {
         if (e.BytesTransferred <= 0 || e.SocketError != SocketError.Success)
         {
-            // 연결이 끊겨서 이미 소켓이 종료된 경우일 것이다.
-            //Console.WriteLine(string.Format("Failed to send. error {0}, transferred {1}", e.SocketError, e.BytesTransferred));
+            // 전송 실패 시 세션을 명시적으로 종료해 반쯤 열린 상태를 방지한다.
+            Close();
             return;
         }
 
