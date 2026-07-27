@@ -1,12 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace FreeNet
+namespace FreeNet;
+
+/// <summary>
+/// Interface for message dispatching.
+/// </summary>
+public interface IMessageDispatcher
 {
-    public interface IMessageDispatcher
-    {
-        void on_message(CUserToken user, ArraySegment<byte> buffer);
-    }
+    /// <summary>
+    /// Called when a message is received from the user.
+    /// </summary>
+    /// <param name="user">The user.</param>
+    /// <param name="buffer">The buffer.</param>
+    void OnMessage(UserToken user, ArraySegment<byte> buffer);
 }

@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FreeNet;
 
-namespace GameServer.UserState
+namespace GameServer.UserState;
+
+/// <summary>
+/// The IUserState interface defines the contract for user states in the game server. Each user state must implement the
+/// OnMessage method to handle incoming messages from the client.
+/// </summary>
+internal interface IUserState
 {
-    using FreeNet;
-
-    public enum USER_STATE_TYPE
-    {
-        LOBBY,
-        PLAY
-    }
-
-    interface IUserState
-    {
-        void on_message(CPacket msg);
-    }
+    /// <summary>
+    /// Called when a message is received from the client.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    void OnMessage(Packet message);
 }

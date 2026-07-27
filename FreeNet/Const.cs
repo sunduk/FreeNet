@@ -1,18 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿namespace FreeNet;
 
-namespace FreeNet
-{
-    public struct Const<T>
-    {
-        public T Value { get; private set; }
-
-        public Const(T value)
-            : this()
-        {
-            this.Value = value;
-        }
-    }
-}
+/// <summary>
+/// A record struct that represents a constant value of type <typeparamref name="T"/>.
+/// </summary>
+public readonly record struct Const<T>(T Value);

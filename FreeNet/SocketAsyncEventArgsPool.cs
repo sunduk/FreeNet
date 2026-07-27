@@ -1,57 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Net.Sockets;
 
-namespace FreeNet
+namespace FreeNet;
+
+/// <summary>
+/// Represents a collection of reusable SocketAsyncEventArgs objects. Initializes the object pool to the specified size.
+/// The "capacity" parameter is the maximum number of SocketAsyncEventArgs objects the pool can hold
+/// </summary>
+/// <param name="capacity">The capacity.</param>
+internal class SocketAsyncEventArgsPool(int capacity)
 {
-    // Represents a collection of reusable SocketAsyncEventArgs objects.  
-    class SocketAsyncEventArgsPool
+    private readonly Stack<SocketAsyncEventArgs> _pool = new(capacity);
+
+    /// <summary>
+    /// Gets the number of SocketAsyncEventArgs instances in the pool.
+    /// </summary>
+    /// <value>The number of SocketAsyncEventArgs instances in the pool.</value>
+    public int Count => _pool.Count;
+
+    /// <summary>
+    /// Removes a SocketAsyncEventArgs instance from the pool and returns the object removed from the pool
+    /// </summary>
+    /// <returns>SocketAsyncEventArgs.</returns>
+    public SocketAsyncEventArgs Pop()
     {
-        Stack<SocketAsyncEventArgs> m_pool;
-
-        // Initializes the object pool to the specified size
-        //
-        // The "capacity" parameter is the maximum number of 
-        // SocketAsyncEventArgs objects the pool can hold
-        public SocketAsyncEventArgsPool(int capacity)
+        lock (_pool)
         {
-            m_pool = new Stack<SocketAsyncEventArgs>(capacity);
+            return _pool.Pop();
         }
+    }
 
-        // Add a SocketAsyncEventArg instance to the pool
-        //
-        //The "item" parameter is the SocketAsyncEventArgs instance 
-        // to add to the pool
-        public void Push(SocketAsyncEventArgs item)
+    /// <summary>
+    /// Add a SocketAsyncEventArg instance to the pool. The "item" parameter is the SocketAsyncEventArgs instance to add
+    /// to the pool
+    /// </summary>
+    /// <param name="item">
+    /// The <see cref="SocketAsyncEventArgs"/> instance containing the event data.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// Items added to a SocketAsyncEventArgsPool cannot be null
+    /// </exception>
+    /// <exception cref="Exception">Already exist item.</exception>
+    public void Push(SocketAsyncEventArgs item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        lock (_pool)
         {
-            if (item == null) { throw new ArgumentNullException("Items added to a SocketAsyncEventArgsPool cannot be null"); }
-            lock (m_pool)
+            if (_pool.Contains(item))
             {
-                if (m_pool.Contains(item))
-                {
-                    throw new Exception("Already exist item.");
-                }
-
-                m_pool.Push(item);
+                throw new Exception("Already exist item.");
             }
-        }
 
-        // Removes a SocketAsyncEventArgs instance from the pool
-        // and returns the object removed from the pool
-        public SocketAsyncEventArgs Pop()
-        {
-            lock (m_pool)
-            {
-                return m_pool.Pop();
-            }
-        }
-
-        // The number of SocketAsyncEventArgs instances in the pool
-        public int Count
-        {
-            get { return m_pool.Count; }
+            _pool.Push(item);
         }
     }
 }

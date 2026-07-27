@@ -1,6 +1,17 @@
-﻿
+﻿namespace GameServer.State;
+
+/// <summary>
+/// Interface for state.
+/// </summary>
 public interface IState
 {
-    void on_enter();
-    void on_exit();
+    /// <summary>
+    /// Called when [enter].
+    /// </summary>
+    void OnEnter();
+
+    /// <summary>
+    /// Called when [exit].
+    /// </summary>
+    void OnExit();
 }

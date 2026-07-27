@@ -1,13 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace FreeNet
+namespace FreeNet;
+
+/// <summary>
+/// Interface for a logic queue that handles packets in a thread-safe manner.
+/// </summary>
+public interface ILogicQueue
 {
-    public interface ILogicQueue
-    {
-        void enqueue(CPacket msg);
-        Queue<CPacket> get_all();
-    }
+    /// <summary>
+    /// Enqueues the specified <paramref name="message"/>.
+    /// </summary>
+    /// <param name="message">The packet.</param>
+    void Enqueue(Packet message);
+
+    /// <summary>
+    /// Gets all the packets in the queue.
+    /// </summary>
+    /// <returns>A queue containing all the packets.</returns>
+    Queue<Packet> GetAll();
 }

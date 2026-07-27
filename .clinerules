@@ -1,0 +1,6 @@
+Use `AGENTS.md` as the canonical repository guide.
+
+Repository-specific constraints:
+- Packet size header (`Defines.HEADERSIZE`) and `CPacket` push/pop order are compatibility-critical.
+- `IPeer` binding (`token.set_peer(this)`) and session lifecycle callbacks must be preserved.
+- Threading behavior depends on `CNetworkService(use_logicthread)`; validate changes against the selected mode.
