@@ -7,47 +7,47 @@ using System.Threading;
 namespace FreeNet;
 
 /// <summary>
-/// 사용자 연결을 나타내는 클래스.
+/// Represents a user connection.
 /// </summary>
 public class UserToken(IMessageDispatcher dispatcher)
 {
     /// <summary>
-    /// 하트비트 시작. S -&gt; C
+    /// Starts heartbeat. S -&gt; C
     /// </summary>
     public const short SYS_START_HEARTBEAT = -2;
 
     /// <summary>
-    /// 하트비트 갱신. C -&gt; S
+    /// Updates heartbeat. C -&gt; S
     /// </summary>
     public const short SYS_UPDATE_HEARTBEAT = -3;
 
     /// <summary>
-    /// 세션 종료 이벤트. 세션이 종료될 때 호출되는 콜백 매소드.
+    /// Session closed event. Callback method invoked when the session ends.
     /// </summary>
     public ClosedDelegate OnSessionClosed;
 
     /// <summary>
-    /// 종료 응답. C -&gt; S
+    /// Close acknowledgment. C -&gt; S
     /// </summary>
     private const short SYS_CLOSE_ACK = -1;
 
     /// <summary>
-    /// 종료 요청. S -&gt; C
+    /// Close request. S -&gt; C
     /// </summary>
     private const short SYS_CLOSE_REQ = 0;
 
     /// <summary>
-    /// 바이트를 패킷 형식으로 해석해주는 해석기.
+    /// Resolver that interprets byte data as packets.
     /// </summary>
     private readonly MessageResolver _messageResolver = new();
 
     /// <summary>
-    /// BufferList적용을 위해 queue에서 list로 변경.
+    /// Changed from queue to list to support BufferList.
     /// </summary>
     private readonly List<ArraySegment<byte>> _sendingList = [];
 
     /// <summary>
-    /// sending_list lock처리에 사용되는 객체.
+    /// Object used for locking the sending list.
     /// </summary>
     private readonly Lock _sendingQueueLock = new();
 
@@ -56,39 +56,40 @@ public class UserToken(IMessageDispatcher dispatcher)
     private HeartbeatSender _heartbeatSender;
 
     /// <summary>
-    /// close중복 처리 방지를 위한 플래그. 0 = 연결된 상태. 1 = 종료된 상태.
+    /// Flag to prevent duplicate close handling. 0 = connected. 1 = closed.
     /// </summary>
     private int _isClosed;
 
     /// <summary>
-    /// session객체. 어플리케이션 딴에서 구현하여 사용.
+    /// Session object implemented by the application.
     /// </summary>
     private IPeer _peer = null;
 
     public delegate void ClosedDelegate(UserToken token);
 
     /// <summary>
-    /// 현재 연결 상태를 나타내는 열거형.
+    /// Enum representing the current connection state.
     /// </summary>
     private enum State
     {
         /// <summary>
-        /// 대기중.
+        /// Idle.
         /// </summary>
         Idle,
 
         /// <summary>
-        /// 연결됨.
+        /// Connected.
         /// </summary>
         Connected,
 
         /// <summary>
-        /// 종료가 예약됨. sending_list에 대기중인 상태에서 disconnect를 호출한 경우, 남아있는 패킷을 모두 보낸 뒤 끊도록 하기 위한 상태값.
+        /// Closing is reserved. If disconnect is called while items remain in the sending list,
+        /// this state ensures the connection closes after all remaining packets are sent.
         /// </summary>
         ReserveClosing,
 
         /// <summary>
-        /// 소켓이 완전히 종료됨.
+        /// Socket is fully closed.
         /// </summary>
         Closed,
     }
@@ -118,8 +119,9 @@ public class UserToken(IMessageDispatcher dispatcher)
     public Socket Socket { get; set; }
 
     /// <summary>
-    /// 연결을 종료한다. 단, 종료코드를 전송한 뒤 상대방이 먼저 연결을 끊게 한다. 주로 서버에서 클라이언트의 연결을 끊을 때 사용한다. TIME_WAIT상태를 서버에 남기지 않으려면 disconnect대신
-    /// 이 매소드를 사용해서 클라이언트를 종료시켜야 한다.
+    /// Ends the connection by sending a close code and letting the remote side disconnect first.
+    /// This is mainly used when the server disconnects a client. To avoid leaving TIME_WAIT on the
+    /// server, use this method instead of Disconnect.
     /// </summary>
     public void Ban()
     {
@@ -135,7 +137,7 @@ public class UserToken(IMessageDispatcher dispatcher)
 
     public void Close()
     {
-        // 중복 수행을 막는다.
+        // Prevent duplicate execution.
         if (Interlocked.CompareExchange(ref _isClosed, 1, 0) == 1)
         {
             return;
@@ -151,22 +153,16 @@ public class UserToken(IMessageDispatcher dispatcher)
         Socket?.Close();
         Socket = null;
 
-        if (SendEventArgs is not null)
-        {
-            SendEventArgs.UserToken = null;
-        }
+        SendEventArgs?.UserToken = null;
 
-        if (ReceiveEventArgs is not null)
-        {
-            ReceiveEventArgs.UserToken = null;
-        }
+        ReceiveEventArgs?.UserToken = null;
 
         _sendingList.Clear();
         _messageResolver.ClearBuffer();
 
         if (_peer is not null)
         {
-            Packet msg = Packet.Create(-1);
+            var msg = Packet.Create(-1);
             if (dispatcher is not null)
             {
                 dispatcher.OnMessage(this, new ArraySegment<byte>(msg.Buffer, 0, msg.Position));
@@ -185,7 +181,7 @@ public class UserToken(IMessageDispatcher dispatcher)
     }
 
     /// <summary>
-    /// 연결을 종료한다. 주로 클라이언트에서 종료할 때 호출한다.
+    /// Ends the connection. Mainly called when the client disconnects.
     /// </summary>
     public void Disconnect()
     {
@@ -207,10 +203,7 @@ public class UserToken(IMessageDispatcher dispatcher)
         }
     }
 
-    public bool IsConnected()
-    {
-        return _currentState == State.Connected;
-    }
+    public bool IsConnected() => _currentState == State.Connected;
 
     public void OnConnected()
     {
@@ -221,8 +214,8 @@ public class UserToken(IMessageDispatcher dispatcher)
 
     public void OnMessage(Packet msg)
     {
-        // active close를 위한 코딩. 서버에서 종료하라고 연락이 왔는지 체크한다. 만약 종료신호가 맞다면 Disconnect를 호출하여 받은쪽에서 먼저 종료
-        // 요청을 보낸다.
+        // Logic for active close: check whether the server requested shutdown. If the shutdown
+        // signal is received, call Disconnect so the receiving side initiates close first.
         switch (msg.ProtocolId)
         {
             case SYS_CLOSE_REQ:
@@ -231,9 +224,9 @@ public class UserToken(IMessageDispatcher dispatcher)
 
             case SYS_START_HEARTBEAT:
                 {
-                    // 순서대로 파싱해야 하므로 프로토콜 아이디는 버린다.
+                    // Parsing must happen in order, so discard the protocol ID.
                     _ = msg.PopProtocolId();
-                    // 전송 인터벌.
+                    // Send interval.
                     var interval = msg.PopByte();
                     _heartbeatSender = new HeartbeatSender(this, interval);
 
@@ -282,39 +275,37 @@ public class UserToken(IMessageDispatcher dispatcher)
     }
 
     /// <summary>
-    /// 이 매소드에서 직접 바이트 데이터를 해석해도 되지만 Message resolver클래스를 따로 둔 이유는 추후에 확장성을 고려하여 다른 resolver를 구현할 때 CUserToken클래스의 코드
-    /// 수정을 최소화 하기 위함이다.
+    /// Byte data could be interpreted directly in this method, but the MessageResolver class is
+    /// separated for extensibility so that implementing other resolvers later minimizes changes to
+    /// the UserToken class.
     /// </summary>
     /// <param name="buffer"></param>
     /// <param name="offset"></param>
     /// <param name="transfered"></param>
-    public void OnReceive(byte[] buffer, int offset, int transfered)
-    {
-        _messageResolver.OnReceive(buffer, offset, transfered, OnMessageCompleted);
-    }
+    public void OnReceive(byte[] buffer, int offset, int transfered) => _messageResolver.OnReceive(buffer, offset, transfered, OnMessageCompleted);
 
     /// <summary>
-    /// 비동기 전송 완료시 호출되는 콜백 매소드.
+    /// Callback method invoked when asynchronous send completes.
     /// </summary>
     /// <param name="e"></param>
     public void ProcessSend(SocketAsyncEventArgs e)
     {
         if (e.BytesTransferred <= 0 || e.SocketError != SocketError.Success)
         {
-            // 전송 실패 시 세션을 명시적으로 종료해 반쯤 열린 상태를 방지한다.
+            // Explicitly close the session on send failure to prevent a half-open state.
             Close();
             return;
         }
 
         lock (_sendingQueueLock)
         {
-            // 리스트에 들어있는 데이터의 총 바이트 수.
+            // Total number of bytes in the list.
             var size = _sendingList.Sum(obj => obj.Count);
 
-            // 전송이 완료되기 전에 추가 전송 요청을 했다면 sending_list에 무언가 더 들어있을 것이다.
+            // If another send was requested before completion, sending_list will contain more data.
             if (e.BytesTransferred != size)
             {
-                // TODO: 세그먼트 하나를 다 못보낸 경우에 대한 처리도 해줘야 함. 일단 close시킴.
+                // TODO: Handle cases where a segment is only partially sent. For now, close it.
                 if (e.BytesTransferred < _sendingList[0].Count)
                 {
                     var error = string.Format("Need to send more! transferred {0},  packet size {1}", e.BytesTransferred, size);
@@ -324,7 +315,7 @@ public class UserToken(IMessageDispatcher dispatcher)
                     return;
                 }
 
-                // 보낸 만큼 빼고 나머지 대기중인 데이터들을 한방에 보내버린다.
+                // Remove what was sent and send all remaining queued data in one shot.
                 var sent_index = 0;
                 var sum = 0;
                 for (var i = 0; i < _sendingList.Count; ++i)
@@ -332,25 +323,25 @@ public class UserToken(IMessageDispatcher dispatcher)
                     sum += _sendingList[i].Count;
                     if (sum <= e.BytesTransferred)
                     {
-                        // 여기 까지는 전송 완료된 데이터 인덱스.
+                        // Up to this point are indexes of data already sent.
                         sent_index = i;
                         continue;
                     }
 
                     break;
                 }
-                // 전송 완료된것은 리스트에서 삭제한다.
+                // Remove sent items from the list.
                 _sendingList.RemoveRange(0, sent_index + 1);
 
-                // 나머지 데이터들을 한방에 보낸다.
+                // Send the remaining data in one shot.
                 StartSend();
                 return;
             }
 
-            // 다 보냈고 더이상 보낼것도 없다.
+            // Everything has been sent, and there is nothing else to send.
             _sendingList.Clear();
 
-            // 종료가 예약된 경우, 보낼건 다 보냈으니 진짜 종료 처리를 진행한다.
+            // If closing was reserved, all sends are complete, so proceed with actual shutdown.
             if (_currentState == State.ReserveClosing)
             {
                 Socket.Shutdown(SocketShutdown.Send);
@@ -359,8 +350,9 @@ public class UserToken(IMessageDispatcher dispatcher)
     }
 
     /// <summary>
-    /// 패킷을 전송한다. 큐가 비어 있을 경우에는 큐에 추가한 뒤 바로 SendAsync매소드를 호출하고, 데이터가 들어있을 경우에는 새로 추가만 한다. 큐잉된 패킷의 전송 시점: 현재 진행중인
-    /// SendAsync가 완료되었을 때 큐를 검사하여 나머지 패킷을 전송한다.
+    /// Sends a packet. If the queue is empty, the data is added and SendAsync is called immediately.
+    /// If data already exists, only append the new data. Queued packets are sent when the current
+    /// SendAsync completes and the queue is checked for remaining data.
     /// </summary>
     /// <param name="msg"></param>
     public void Send(ArraySegment<byte> data)
@@ -371,8 +363,9 @@ public class UserToken(IMessageDispatcher dispatcher)
 
             if (_sendingList.Count > 1)
             {
-                // 큐에 무언가가 들어 있다면 아직 이전 전송이 완료되지 않은 상태이므로 큐에 추가만 하고 리턴한다. 현재 수행중인 SendAsync가 완료된 이후에
-                // 큐를 검사하여 데이터가 있으면 SendAsync를 호출하여 전송해줄 것이다.
+                // If the queue already has data, the previous send has not completed yet, so just
+                // enqueue and return. After the current SendAsync completes, the queue is checked,
+                // and SendAsync is called again if data remains.
                 return;
             }
         }
@@ -392,32 +385,20 @@ public class UserToken(IMessageDispatcher dispatcher)
         SendEventArgs = send_event_args;
     }
 
-    public void SetPeer(IPeer peer)
-    {
-        _peer = peer;
-    }
+    public void SetPeer(IPeer peer) => _peer = peer;
 
-    public void StartHeartbeat()
-    {
-        _heartbeatSender?.Play();
-    }
+    public void StartHeartbeat() => _heartbeatSender?.Play();
 
-    public void StopHeartbeat()
-    {
-        _heartbeatSender?.Stop();
-    }
+    public void StopHeartbeat() => _heartbeatSender?.Stop();
 
-    public void UpdateHeartbeatManually(float time)
-    {
-        _heartbeatSender?.Update(time);
-    }
+    public void UpdateHeartbeatManually(float time) => _heartbeatSender?.Update(time);
 
     /// <summary>
-    /// 종료코드를 전송하여 상대방이 먼저 끊도록 한다.
+    /// Sends a close code so the remote side disconnects first.
     /// </summary>
     private void ByeBye()
     {
-        Packet bye = Packet.Create(SYS_CLOSE_REQ);
+        var bye = Packet.Create(SYS_CLOSE_REQ);
         Send(bye);
     }
 
@@ -430,28 +411,28 @@ public class UserToken(IMessageDispatcher dispatcher)
 
         if (dispatcher is not null)
         {
-            // 로직 스레드의 큐를 타고 호출되도록 함.
+            // Ensure this is invoked through the logic thread queue.
             dispatcher.OnMessage(this, buffer);
         }
         else
         {
-            // IO스레드에서 직접 호출.
+            // Invoke directly on the IO thread.
             Packet msg = new(buffer, this);
             OnMessage(msg);
         }
     }
 
     /// <summary>
-    /// 비동기 전송을 시작한다.
+    /// Starts asynchronous send.
     /// </summary>
     private void StartSend()
     {
         try
         {
-            // 성능 향상을 위해 SetBuffer에서 BufferList를 사용하는 방식으로 변경함.
+            // Switched to using BufferList in SetBuffer for better performance.
             SendEventArgs.BufferList = _sendingList;
 
-            // 비동기 전송 시작.
+            // Start asynchronous send.
             var pending = Socket.SendAsync(SendEventArgs);
             if (!pending)
             {
