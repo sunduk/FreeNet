@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FreeNet;
 
-namespace GameServer.RoomState
+namespace GameServer.RoomState;
+
+/// <summary>
+/// Interface for room state management in a game server.
+/// </summary>
+public interface IRoomState
 {
-    using FreeNet;
-
-    public interface IRoomState
-    {
-        void on_receive(PROTOCOL protocol, CPlayer owner, Packet msg);
-    }
+    /// <summary>
+    /// Called when a message is received from a player in the room.
+    /// </summary>
+    /// <param name="protocol">The protocol.</param>
+    /// <param name="owner">The owner.</param>
+    /// <param name="message">The message.</param>
+    void OnReceive(PROTOCOL protocol, Player owner, Packet message);
 }
