@@ -40,14 +40,11 @@ internal class HeartbeatSender
         Send();
     }
 
-    private void OnTimer(object state)
-    {
-        Send();
-    }
+    private void OnTimer(object state) => Send();
 
     private void Send()
     {
-        Packet msg = Packet.Create(UserToken.SYS_UPDATE_HEARTBEAT);
+        var msg = Packet.Create(UserToken.SYS_UPDATE_HEARTBEAT);
         _server.Send(msg);
     }
 }

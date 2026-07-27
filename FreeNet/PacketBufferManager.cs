@@ -45,7 +45,7 @@ public class PacketBufferManager
 
     private static void Allocate()
     {
-        for (int i = 0; i < s_pool_capacity; ++i)
+        for (var i = 0; i < s_pool_capacity; ++i)
         {
             s_pool.Push(new Packet());
         }

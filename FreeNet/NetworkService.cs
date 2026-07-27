@@ -36,16 +36,13 @@ public class NetworkService
     public SessionHandler SessionCreatedCallback { get; set; }
     public ServerUserManager Usermanager { get; private set; }
 
-    public void DisableHeartbeat()
-    {
-        Usermanager.StopHeartbeatChecking();
-    }
+    public void DisableHeartbeat() => Usermanager.StopHeartbeatChecking();
 
     public void Initialize()
     {
         // configs.
-        int maxConnections = 10000;
-        int bufferSize = 1024;
+        var maxConnections = 10000;
+        var bufferSize = 1024;
         Initialize(maxConnections, bufferSize);
     }
 
@@ -59,7 +56,7 @@ public class NetworkService
     public void Initialize(int maxConnections, int bufferSize)
     {
         // receive버퍼만 할당해 놓는다. send버퍼는 보낼때마다 할당하든 풀에서 얻어오든 하기 때문에.
-        int preAllocCount = 1;
+        var preAllocCount = 1;
 
         BufferManager bufferManager = new(maxConnections * bufferSize * preAllocCount, bufferSize);
         _receiveEventArgsPool = new SocketAsyncEventArgsPool(maxConnections);
@@ -72,7 +69,7 @@ public class NetworkService
         // preallocate pool of SocketAsyncEventArgs objects
         SocketAsyncEventArgs arg;
 
-        for (int i = 0; i < maxConnections; i++)
+        for (var i = 0; i < maxConnections; i++)
         {
             // 더이상 UserToken을 미리 생성해 놓지 않는다. 다수의 클라이언트에서 접속 -> 메시지 송수신 -> 접속 해제를 반복할 경우 문제가 생김. 일단
             // on_new_client에서 그때 그때 생성하도록 하고, 소켓이 종료되면 null로 세팅하여 오류 발생시 확실히 드러날 수 있도록 코드를 변경한다.
@@ -153,12 +150,12 @@ public class NetworkService
     private static void BeginReceive(Socket socket, SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs)
     {
         // receiveArgs, sendArgs 아무곳에서나 꺼내와도 된다. 둘다 동일한 CUserToken을 물고 있다.
-        UserToken token = receiveArgs.UserToken as UserToken;
+        var token = receiveArgs.UserToken as UserToken;
         token.SetEventArgs(receiveArgs, sendArgs);
         // 생성된 클라이언트 소켓을 보관해 놓고 통신할 때 사용한다.
         token.Socket = socket;
 
-        bool pending = socket.ReceiveAsync(receiveArgs);
+        var pending = socket.ReceiveAsync(receiveArgs);
         if (!pending)
         {
             ProcessReceive(receiveArgs);
@@ -182,7 +179,7 @@ public class NetworkService
             token.OnReceive(e.Buffer, e.Offset, e.BytesTransferred);
 
             // Keep receive.
-            bool pending = token.Socket.ReceiveAsync(e);
+            var pending = token.Socket.ReceiveAsync(e);
             if (pending)
             {
                 return;
@@ -206,8 +203,8 @@ public class NetworkService
     private void OnNewClient(Socket clientSocket, object token)
     {
         // 플에서 하나 꺼내와 사용한다.
-        SocketAsyncEventArgs receiveArgs = _receiveEventArgsPool.Pop();
-        SocketAsyncEventArgs sendArgs = _sendEventArgsPool.Pop();
+        var receiveArgs = _receiveEventArgsPool.Pop();
+        var sendArgs = _sendEventArgsPool.Pop();
 
         // UserToken은 매번 새로 생성하여 깨끗한 인스턴스로 넣어준다.
         UserToken userToken = new(LogicEntry);
@@ -222,7 +219,7 @@ public class NetworkService
 
         BeginReceive(clientSocket, receiveArgs, sendArgs);
 
-        Packet msg = Packet.Create(UserToken.SYS_START_HEARTBEAT);
+        var msg = Packet.Create(UserToken.SYS_START_HEARTBEAT);
         byte send_interval = 5;
         msg.Push(send_interval);
         userToken.Send(msg);
@@ -251,7 +248,7 @@ public class NetworkService
     {
         try
         {
-            UserToken token = e.UserToken as UserToken;
+            var token = e.UserToken as UserToken;
             token.ProcessSend(e);
         }
         catch (Exception)

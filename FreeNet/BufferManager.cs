@@ -41,10 +41,7 @@ internal class BufferManager(int totalBytes, int bufferSize)
     /// <remarks>
     /// Creates one big large buffer and divide that out to each SocketAsyncEventArg object
     /// </remarks>
-    public void InitBuffer()
-    {
-        _buffer = new byte[totalBytes];
-    }
+    public void InitBuffer() => _buffer = new byte[totalBytes];
 
     /// <summary>
     /// Assigns a buffer from the buffer pool to the specified SocketAsyncEventArgs object

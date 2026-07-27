@@ -38,7 +38,7 @@ internal class DoubleBufferingQueue : ILogicQueue
     /// <param name="msg">보관할 패킷</param>
     void ILogicQueue.Enqueue(Packet msg)
     {
-        using Lock.Scope scope = _cs_write.EnterScope();
+        using var scope = _cs_write.EnterScope();
         _refInput.Enqueue(msg);
     }
 
@@ -53,7 +53,7 @@ internal class DoubleBufferingQueue : ILogicQueue
     /// </summary>
     private void Swap()
     {
-        using Lock.Scope scope = _cs_write.EnterScope();
+        using var scope = _cs_write.EnterScope();
         (_refOutput, _refInput) = (_refInput, _refOutput);
     }
 }

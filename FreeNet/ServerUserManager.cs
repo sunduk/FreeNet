@@ -58,20 +58,17 @@ public class ServerUserManager
         _timerHeartbeat = new Timer(CheckHeartbeat, null, 1000 * check_interval_sec, 1000 * check_interval_sec);
     }
 
-    public void StopHeartbeatChecking()
-    {
-        _timerHeartbeat.Dispose();
-    }
+    public void StopHeartbeatChecking() => _timerHeartbeat.Dispose();
 
     private void CheckHeartbeat(object state)
     {
-        long allowedTime = DateTime.Now.Ticks - _heartbeatDuration;
+        var allowedTime = DateTime.Now.Ticks - _heartbeatDuration;
 
         using (_user.EnterScope())
         {
-            for (int i = 0; i < _users.Count; ++i)
+            for (var i = 0; i < _users.Count; ++i)
             {
-                long heartbeatTime = _users[i].LatestHeartbeatTime;
+                var heartbeatTime = _users[i].LatestHeartbeatTime;
                 if (heartbeatTime >= allowedTime)
                 {
                     continue;

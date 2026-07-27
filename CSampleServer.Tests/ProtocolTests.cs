@@ -1,5 +1,3 @@
-using VerifyTests;
-
 namespace CSampleServer.Tests;
 
 public class ProtocolTests
@@ -10,8 +8,8 @@ public class ProtocolTests
         var req = (short)PROTOCOL.CHAT_MSG_REQ;
         var ack = (short)PROTOCOL.CHAT_MSG_ACK;
 
-        await Assert.That(req).IsEqualTo((short)1);
-        await Assert.That(ack).IsEqualTo((short)2);
+        _ = await Assert.That(req).IsEqualTo((short)1);
+        _ = await Assert.That(ack).IsEqualTo((short)2);
     }
 
     [Test]
@@ -19,6 +17,6 @@ public class ProtocolTests
     {
         VerifierSettings.DontScrubGuids();
         var value = Guid.NewGuid();
-        await Assert.That(value).IsNotEqualTo(Guid.Empty);
+        _ = await Assert.That(value).IsNotEqualTo(Guid.Empty);
     }
 }

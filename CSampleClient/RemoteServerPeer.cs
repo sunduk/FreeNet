@@ -23,21 +23,18 @@ internal class RemoteServerPeer : IPeer
     public UserToken Token { get; private set; }
 
     /// <inheritdoc/>
-    public void Disconnect()
-    {
-        Token.Disconnect();
-    }
+    public void Disconnect() => Token.Disconnect();
 
     /// <inheritdoc/>
     public void OnMessage(Packet msg)
     {
         _ = Interlocked.Increment(ref _receivedCount);
 
-        PROTOCOL protocolId = (PROTOCOL)msg.PopProtocolId();
+        var protocolId = (PROTOCOL)msg.PopProtocolId();
         switch (protocolId)
         {
             case PROTOCOL.CHAT_MSG_ACK:
-                string text = msg.PopString();
+                var text = msg.PopString();
                 Console.WriteLine($"text {text}");
                 break;
         }

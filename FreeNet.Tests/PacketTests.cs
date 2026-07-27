@@ -1,28 +1,9 @@
 using NSubstitute;
-using VerifyTests;
 
 namespace FreeNet.Tests;
 
 public class PacketTests
 {
-    [Test]
-    public async Task Packet_round_trip_preserves_payload()
-    {
-        var packet = Packet.Create(100);
-        packet.Push((short)7);
-        packet.Push(42);
-        packet.Push("hello");
-        packet.RecordSize();
-
-        var parsed = new Packet(new ArraySegment<byte>(packet.Buffer, 0, packet.Position), null!);
-
-        await Assert.That(parsed.ProtocolId).IsEqualTo((short)100);
-        await Assert.That(parsed.PopProtocolId()).IsEqualTo((short)100);
-        await Assert.That(parsed.PopInt16()).IsEqualTo((short)7);
-        await Assert.That(parsed.PopInt32()).IsEqualTo(42);
-        await Assert.That(parsed.PopString()).IsEqualTo("hello");
-    }
-
     [Test]
     public void Close_ack_message_notifies_peer()
     {
@@ -40,10 +21,28 @@ public class PacketTests
     }
 
     [Test]
+    public async Task Packet_round_trip_preserves_payload()
+    {
+        var packet = Packet.Create(100);
+        packet.Push((short)7);
+        packet.Push(42);
+        packet.Push("hello");
+        packet.RecordSize();
+
+        var parsed = new Packet(new ArraySegment<byte>(packet.Buffer, 0, packet.Position), null!);
+
+        _ = await Assert.That(parsed.ProtocolId).IsEqualTo((short)100);
+        _ = await Assert.That(parsed.PopProtocolId()).IsEqualTo((short)100);
+        _ = await Assert.That(parsed.PopInt16()).IsEqualTo((short)7);
+        _ = await Assert.That(parsed.PopInt32()).IsEqualTo(42);
+        _ = await Assert.That(parsed.PopString()).IsEqualTo("hello");
+    }
+
+    [Test]
     public async Task Verify_configuration_is_available()
     {
         VerifierSettings.DontScrubGuids();
         var value = Guid.NewGuid();
-        await Assert.That(value).IsNotEqualTo(Guid.Empty);
+        _ = await Assert.That(value).IsNotEqualTo(Guid.Empty);
     }
 }

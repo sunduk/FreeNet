@@ -1,8 +1,6 @@
-﻿using System.Net;
-
-using CSampleClient;
-
+﻿using CSampleClient;
 using FreeNet;
+using System.Net;
 
 PacketBufferManager.Initialize(2000);
 
@@ -33,13 +31,13 @@ connector.Connect(endpoint);
 while (true)
 {
     Console.Write("> ");
-    string line = Console.ReadLine();
+    var line = Console.ReadLine();
     if (line == "q")
     {
         break;
     }
 
-    Packet msg = Packet.Create((short)PROTOCOL.CHAT_MSG_REQ);
+    var msg = Packet.Create((short)PROTOCOL.CHAT_MSG_REQ);
     msg.Push(line);
     gameServers[0].Send(msg);
 }
