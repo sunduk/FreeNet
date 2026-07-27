@@ -1,62 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FreeNet;
+﻿using FreeNet;
+using GameServer;
 
-namespace GameServer
+var service = new NetworkService(true);
+// 콜백 매소드 설정.
+service.SessionCreatedCallback += OnSessionCreated;
+// 초기화.
+service.Initialize(10000, 1024);
+service.Listen("0.0.0.0", 20000, 100);
+
+Console.WriteLine("Started!");
+while (true)
 {
-	class Program
-	{
-		static List<CGameUser> userlist;
-		public static CGameServer game_main = new CGameServer();
+    var input = Console.ReadLine();
+    Thread.Sleep(1000);
+}
 
-		static void Main(string[] args)
-		{
-			userlist = new List<CGameUser>();
+internal partial class Program
+{
+    private static readonly List<GameUser> Userlist = [];
+    public static GameServerImpl GameMain { get; } = new();
 
-			NetworkService service = new NetworkService(true);
-			// 콜백 매소드 설정.
-			service.SessionCreatedCallback += on_session_created;
-			// 초기화.
-			service.Initialize(10000, 1024);
-			service.Listen("0.0.0.0", 20000, 100);
+    public static int GetConcurrentUserCount() => Userlist.Count;
 
-
-            Console.WriteLine("Started!");
-			while (true)
-			{
-				string input = Console.ReadLine();
-				//Console.Write(".");
-				System.Threading.Thread.Sleep(1000);
-			}
-		}
-
-
-		static void on_session_created(UserToken token)
-		{
-			CGameUser user = new CGameUser(token);
-			lock (userlist)
-			{
-				userlist.Add(user);
-			}
-		}
-
-
-		public static void remove_user(CGameUser user)
-		{
-			lock (userlist)
-			{
-				userlist.Remove(user);
-				game_main.user_disconnected(user);
-            }
-		}
-
-
-        public static int get_concurrent_user_count()
+    public static void OnSessionCreated(UserToken token)
+    {
+        var user = new GameUser(token);
+        lock (Userlist)
         {
-            return userlist.Count;
+            Userlist.Add(user);
         }
-	}
+    }
+
+    public static void RemoveUser(GameUser user)
+    {
+        lock (Userlist)
+        {
+            _ = Userlist.Remove(user);
+
+            GameMain.UserDisconnected(user);
+        }
+    }
 }
