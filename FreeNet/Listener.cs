@@ -60,7 +60,7 @@ internal class Listener
             SocketType.Stream,
             ProtocolType.Tcp);
 
-        IPAddress address = host == "0.0.0.0" ? IPAddress.Any : IPAddress.Parse(host);
+        var address = host == "0.0.0.0" ? IPAddress.Any : IPAddress.Parse(host);
         IPEndPoint endpoint = new(address, port);
 
         try
@@ -131,7 +131,7 @@ internal class Listener
         if (e.SocketError == SocketError.Success)
         {
             // 새로 생긴 소켓을 보관해 놓은뒤~
-            Socket client_socket = e.AcceptSocket;
+            var client_socket = e.AcceptSocket;
             client_socket.NoDelay = true;
 
             // 이 클래스에서는 accept까지의 역할만 수행하고 클라이언트의 접속 이후의 처리는 외부로 넘기기 위해서 콜백 매소드를 호출해 주도록 합니다. 이유는 소켓

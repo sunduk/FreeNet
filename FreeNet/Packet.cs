@@ -48,10 +48,7 @@ public class Packet
     /// <summary>
     /// Initializes a new instance of the <see cref="Packet"/> class.
     /// </summary>
-    public Packet()
-    {
-        Buffer = new byte[1024];
-    }
+    public Packet() => Buffer = new byte[1024];
 
     /// <summary>
     /// Gets the buffer.
@@ -102,9 +99,10 @@ public class Packet
     /// Destroys the specified packet.
     /// </summary>
     /// <param name="packet">The packet.</param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public static void Destroy(Packet packet)
     {
-        //CPacketBufferManager.push(packet);
+        //PacketBufferManager.push(packet);
     }
 
     /// <summary>
@@ -134,7 +132,7 @@ public class Packet
     /// <returns>System.Byte.</returns>
     public byte PopByte()
     {
-        byte data = Buffer[Position];
+        var data = Buffer[Position];
         Position += sizeof(byte);
         return data;
     }
@@ -145,7 +143,7 @@ public class Packet
     /// <returns>System.Single.</returns>
     public float PopFloat()
     {
-        float data = BitConverter.ToSingle(Buffer, Position);
+        var data = BitConverter.ToSingle(Buffer, Position);
         Position += sizeof(float);
         return data;
     }
@@ -156,7 +154,7 @@ public class Packet
     /// <returns>System.Int16.</returns>
     public short PopInt16()
     {
-        short data = BitConverter.ToInt16(Buffer, Position);
+        var data = BitConverter.ToInt16(Buffer, Position);
         Position += sizeof(short);
         return data;
     }
@@ -167,7 +165,7 @@ public class Packet
     /// <returns>System.Int32.</returns>
     public int PopInt32()
     {
-        int data = BitConverter.ToInt32(Buffer, Position);
+        var data = BitConverter.ToInt32(Buffer, Position);
         Position += sizeof(int);
         return data;
     }
@@ -176,10 +174,7 @@ public class Packet
     /// Pops the protocol identifier.
     /// </summary>
     /// <returns>System.Int16.</returns>
-    public short PopProtocolId()
-    {
-        return PopInt16();
-    }
+    public short PopProtocolId() => PopInt16();
 
     /// <summary>
     /// Pops the string.
@@ -188,11 +183,11 @@ public class Packet
     public string PopString()
     {
         // 문자열 길이는 최대 2바이트 까지. 0 ~ 32767
-        short len = BitConverter.ToInt16(Buffer, Position);
+        var len = BitConverter.ToInt16(Buffer, Position);
         Position += sizeof(short);
 
         // 인코딩은 utf8로 통일한다.
-        string data = Encoding.UTF8.GetString(Buffer, Position, len);
+        var data = Encoding.UTF8.GetString(Buffer, Position, len);
         Position += len;
 
         return data;
@@ -214,7 +209,7 @@ public class Packet
     /// <param name="data">The data.</param>
     public void Push(short data)
     {
-        byte[] temp_buffer = BitConverter.GetBytes(data);
+        var temp_buffer = BitConverter.GetBytes(data);
         temp_buffer.CopyTo(Buffer, Position);
         Position += temp_buffer.Length;
     }
@@ -225,7 +220,7 @@ public class Packet
     /// <param name="data">The data.</param>
     public void Push(int data)
     {
-        byte[] temp_buffer = BitConverter.GetBytes(data);
+        var temp_buffer = BitConverter.GetBytes(data);
         temp_buffer.CopyTo(Buffer, Position);
         Position += temp_buffer.Length;
     }
@@ -236,10 +231,10 @@ public class Packet
     /// <param name="data">The data.</param>
     public void Push(string data)
     {
-        byte[] temp_buffer = Encoding.UTF8.GetBytes(data);
+        var temp_buffer = Encoding.UTF8.GetBytes(data);
 
-        short len = (short)temp_buffer.Length;
-        byte[] len_buffer = BitConverter.GetBytes(len);
+        var len = (short)temp_buffer.Length;
+        var len_buffer = BitConverter.GetBytes(len);
         len_buffer.CopyTo(Buffer, Position);
         Position += sizeof(short);
 
@@ -253,7 +248,7 @@ public class Packet
     /// <param name="data">The data.</param>
     public void Push(float data)
     {
-        byte[] temp_buffer = BitConverter.GetBytes(data);
+        var temp_buffer = BitConverter.GetBytes(data);
         temp_buffer.CopyTo(Buffer, Position);
         Position += temp_buffer.Length;
     }
@@ -264,7 +259,7 @@ public class Packet
     /// <param name="data">The data.</param>
     public void PushInt16(short data)
     {
-        byte[] temp_buffer = BitConverter.GetBytes(data);
+        var temp_buffer = BitConverter.GetBytes(data);
         temp_buffer.CopyTo(Buffer, Position);
         Position += temp_buffer.Length;
     }
@@ -275,7 +270,7 @@ public class Packet
     public void RecordSize()
     {
         // header + body 를 합한 사이즈를 입력한다.
-        byte[] header = BitConverter.GetBytes(Position);
+        var header = BitConverter.GetBytes(Position);
         header.CopyTo(Buffer, 0);
     }
 

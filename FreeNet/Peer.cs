@@ -20,12 +20,12 @@ internal class Peer
     public static void OnMessage(Const<byte[]> buffer)
     {
         Packet msg = new(buffer.Value, null);
-        short protocol_id = msg.PopInt16();
+        var protocol_id = msg.PopInt16();
         switch (protocol_id)
         {
             case 1:
-                int number = msg.PopInt32();
-                string text = msg.PopString();
+                var number = msg.PopInt32();
+                var text = msg.PopString();
 
                 Console.WriteLine(
                     string.Format(

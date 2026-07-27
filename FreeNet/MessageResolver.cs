@@ -70,7 +70,7 @@ internal class MessageResolver
         _remainBytes = transffered;
 
         // 원본 버퍼의 포지션값. 패킷이 여러개 뭉쳐 올 경우 원본 버퍼의 포지션은 계속 앞으로 가야 하는데 그 처리를 위한 변수이다.
-        int src_position = offset;
+        var src_position = offset;
 
         // 남은 데이터가 있다면 계속 반복한다.
         while (_remainBytes > 0)
@@ -116,7 +116,7 @@ internal class MessageResolver
             if (completed)
             {
                 // 패킷 하나를 완성 했다.
-                byte[] clone = new byte[_positionToRead];
+                var clone = new byte[_positionToRead];
                 Array.Copy(_messageBuffer, clone, _positionToRead);
                 ClearBuffer();
                 callback(new ArraySegment<byte>(clone, 0, _positionToRead));
@@ -151,7 +151,7 @@ internal class MessageResolver
     private bool ReadUntil(byte[] buffer, ref int src_position)
     {
         // 읽어와야 할 바이트. 데이터가 분리되어 올 경우 이전에 읽어놓은 값을 빼줘서 부족한 만큼 읽어올 수 있도록 계산해 준다.
-        int copy_size = _positionToRead - _currentPosition;
+        var copy_size = _positionToRead - _currentPosition;
 
         // 앗! 남은 데이터가 더 적다면 가능한 만큼만 복사한다.
         if (_remainBytes < copy_size)

@@ -28,7 +28,7 @@ Console.WriteLine("Started!");
 while (true)
 {
     //Console.Write(".");
-    string input = Console.ReadLine();
+    var input = Console.ReadLine();
     if (input.Equals("users"))
     {
         Console.WriteLine(service.Usermanager.GetTotalCount());

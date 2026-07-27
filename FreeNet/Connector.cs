@@ -41,7 +41,7 @@ public class Connector(NetworkService network_service)
         SocketAsyncEventArgs event_arg = new();
         event_arg.Completed += OnConnectCompleted;
         event_arg.RemoteEndPoint = remote_endpoint;
-        bool pending = _client.ConnectAsync(event_arg);
+        var pending = _client.ConnectAsync(event_arg);
         if (!pending)
         {
             OnConnectCompleted(this, event_arg);

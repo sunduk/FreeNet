@@ -227,7 +227,7 @@ public class UserToken(IMessageDispatcher dispatcher)
                     // 순서대로 파싱해야 하므로 프로토콜 아이디는 버린다.
                     _ = msg.PopProtocolId();
                     // 전송 인터벌.
-                    byte interval = msg.PopByte();
+                    var interval = msg.PopByte();
                     _heartbeatSender = new HeartbeatSender(this, interval);
 
                     if (_autoHeartbeat)
@@ -302,7 +302,7 @@ public class UserToken(IMessageDispatcher dispatcher)
         lock (_sendingQueueLock)
         {
             // 리스트에 들어있는 데이터의 총 바이트 수.
-            int size = _sendingList.Sum(obj => obj.Count);
+            var size = _sendingList.Sum(obj => obj.Count);
 
             // 전송이 완료되기 전에 추가 전송 요청을 했다면 sending_list에 무언가 더 들어있을 것이다.
             if (e.BytesTransferred != size)
@@ -310,7 +310,7 @@ public class UserToken(IMessageDispatcher dispatcher)
                 // TODO: 세그먼트 하나를 다 못보낸 경우에 대한 처리도 해줘야 함. 일단 close시킴.
                 if (e.BytesTransferred < _sendingList[0].Count)
                 {
-                    string error = string.Format("Need to send more! transferred {0},  packet size {1}", e.BytesTransferred, size);
+                    var error = string.Format("Need to send more! transferred {0},  packet size {1}", e.BytesTransferred, size);
                     Console.WriteLine(error);
 
                     Close();
@@ -318,9 +318,9 @@ public class UserToken(IMessageDispatcher dispatcher)
                 }
 
                 // 보낸 만큼 빼고 나머지 대기중인 데이터들을 한방에 보내버린다.
-                int sent_index = 0;
-                int sum = 0;
-                for (int i = 0; i < _sendingList.Count; ++i)
+                var sent_index = 0;
+                var sum = 0;
+                for (var i = 0; i < _sendingList.Count; ++i)
                 {
                     sum += _sendingList[i].Count;
                     if (sum <= e.BytesTransferred)
@@ -445,7 +445,7 @@ public class UserToken(IMessageDispatcher dispatcher)
             SendEventArgs.BufferList = _sendingList;
 
             // 비동기 전송 시작.
-            bool pending = Socket.SendAsync(SendEventArgs);
+            var pending = Socket.SendAsync(SendEventArgs);
             if (!pending)
             {
                 ProcessSend(SendEventArgs);

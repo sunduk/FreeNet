@@ -35,7 +35,7 @@ public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
     {
         while (queue.Count > 0)
         {
-            Packet msg = queue.Dequeue();
+            var msg = queue.Dequeue();
             if (!service.Usermanager.Exists(msg.Owner))
             {
                 continue;

@@ -15,9 +15,9 @@
         {
           "Documents": [
             {
-              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\viruswar\\server\\GameServer\\RoomState\\GameRoomPlayState.cs",
-              "RelativePath": "..\\..\\viruswar\\server\\GameServer\\RoomState\\GameRoomPlayState.cs",
-              "FullName": "GameRoomPlayState.cs",
+              "FilePath": "C:\\Users\\WilliamForney\\source\\repos\\wforney\\FreeNet\\CSampleClient.Tests\\ProtocolTests.cs",
+              "RelativePath": "..\\..\\CSampleClient.Tests\\ProtocolTests.cs",
+              "FullName": "ProtocolTests.cs",
               "DockedHeight": {
                 "UnitType": "Stretch",
                 "Value": 200
@@ -26,9 +26,10 @@
                 "UnitType": "Stretch",
                 "Value": 259
               },
-              "Line": 1,
-              "Column": 1,
+              "Line": 11,
+              "Column": 13,
               "IsPinned": false,
+              "IsActive": true,
               "IsSelected": true
             }
           ],
