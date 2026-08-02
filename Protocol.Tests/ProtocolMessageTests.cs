@@ -90,6 +90,11 @@ public class ProtocolMessageTests
     private static Packet ToInboundPacket(Packet outbound)
     {
         outbound.RecordSize();
-        return new Packet(new ArraySegment<byte>(outbound.Buffer, 0, outbound.Position), null!);
+        var inbound = new Packet(new ArraySegment<byte>(outbound.Buffer, 0, outbound.Position), null!);
+
+        // Production flow consumes protocol id before message-specific parsing.
+        _ = inbound.PopProtocolId();
+
+        return inbound;
     }
 }
