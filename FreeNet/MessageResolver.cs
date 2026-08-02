@@ -20,24 +20,26 @@ internal class Defines
 }
 
 /// <summary>
-/// [header][body] 구조를 갖는 데이터를 파싱하는 클래스. - header: 데이터 사이즈. Defines.HEADERSIZE에 정의된 타입만큼의 크기를 갖는다. 2바이트일 경우 Int16, 4바이트는
-/// Int32로 처리하면 된다. 본문의 크기가 Int16.Max값을 넘지 않는다면 2바이트로 처리하는것이 좋을것 같다. - body: 메시지 본문.
+/// Parses data with a [header][body] structure.
+/// - header: total message size, using the type size defined by Defines.HEADERSIZE (Int16 for 2 bytes, Int32 for 4 bytes).
+/// - body: message payload.
+/// If payload size never exceeds Int16.MaxValue, a 2-byte header is typically preferable.
 /// </summary>
 internal class MessageResolver
 {
-    // 진행중인 버퍼.
+    // Buffer being assembled.
     private readonly byte[] _messageBuffer = new byte[1024];
 
-    // 현재 진행중인 버퍼의 인덱스를 가리키는 변수. 패킷 하나를 완성한 뒤에는 0으로 초기화 시켜줘야 한다.
+    // Index into the in-progress buffer. Reset to 0 after one packet is completed.
     private int _currentPosition;
 
-    // 메시지 사이즈.
+    // Message size.
     private int _messageSize;
 
-    // 읽어와야 할 목표 위치.
+    // Target position to read up to.
     private int _positionToRead;
 
-    // 남은 사이즈.
+    // Remaining bytes.
     private int _remainBytes;
 
     public MessageResolver()
@@ -57,65 +59,66 @@ internal class MessageResolver
     }
 
     /// <summary>
-    /// 소켓 버퍼로부터 데이터를 수신할 때 마다 호출된다. 데이터가 남아 있을 때 까지 계속 패킷을 만들어 callback을 호출 해 준다. 하나의 패킷을 완성하지 못했다면 버퍼에 보관해 놓은 뒤 다음 수신을
-    /// 기다린다.
+    /// Called whenever data is received from the socket buffer.
+    /// Continues assembling packets and invokes the callback while data remains.
+    /// If a full packet cannot be completed, keeps partial data in the buffer and waits for the next receive.
     /// </summary>
-    /// <param name="buffer">수신된 데이터가 들어있는 버퍼.</param>
-    /// <param name="offset">버퍼에서 읽기를 시작할 위치.</param>
-    /// <param name="transffered">수신된 데이터의 크기.</param>
-    /// <param name="callback">패킷이 완성되었을 때 호출될 콜백.</param>
+    /// <param name="buffer">Buffer containing received data.</param>
+    /// <param name="offset">Start position for reading from the buffer.</param>
+    /// <param name="transffered">Size of received data.</param>
+    /// <param name="callback">Callback invoked when a packet is fully assembled.</param>
     public void OnReceive(byte[] buffer, int offset, int transffered, CompletedMessageCallback callback)
     {
-        // 이번 receive로 읽어오게 될 바이트 수.
+        // Bytes to read from this receive.
         _remainBytes = transffered;
 
-        // 원본 버퍼의 포지션값. 패킷이 여러개 뭉쳐 올 경우 원본 버퍼의 포지션은 계속 앞으로 가야 하는데 그 처리를 위한 변수이다.
+        // Position in the source buffer. Needed when multiple packets arrive together.
         var src_position = offset;
 
-        // 남은 데이터가 있다면 계속 반복한다.
+        // Continue while there is remaining data.
         while (_remainBytes > 0)
         {
             bool completed;
 
-            // 헤더만큼 못읽은 경우 헤더를 먼저 읽는다.
+            // If the header is incomplete, read the header first.
             if (_currentPosition < Defines.HEADERSIZE)
             {
-                // 목표 지점 설정(헤더 위치까지 도달하도록 설정).
+                // Set target position to the end of the header.
                 _positionToRead = Defines.HEADERSIZE;
 
                 completed = ReadUntil(buffer, ref src_position);
                 if (!completed)
                 {
-                    // 아직 다 못읽었으므로 다음 receive를 기다린다.
+                    // Not enough data yet; wait for the next receive.
                     return;
                 }
 
-                // 헤더 하나를 온전히 읽어왔으므로 메시지 사이즈를 구한다.
+                // Header is complete, so determine total message size.
                 _messageSize = GetTotalMessageSize();
 
-                // 메시지 사이즈가 0이하라면 잘못된 패킷으로 처리한다. It was wrong message if size less than zero.
+                // Treat non-positive message size as an invalid packet.
                 if (_messageSize <= 0)
                 {
                     ClearBuffer();
                     return;
                 }
 
-                // 다음 목표 지점.
+                // Next target position.
                 _positionToRead = _messageSize;
 
-                // 헤더를 다 읽었는데 더이상 가져올 데이터가 없다면 다음 receive를 기다린다. (예를들어 데이터가 조각나서 헤더만 오고 메시지는 다음번에 올 경우)
+                // If only the header was received, wait for the next receive for the body.
                 if (_remainBytes <= 0)
                 {
                     return;
                 }
             }
 
-            // 메시지를 읽는다.
+            // Read the message body.
             completed = ReadUntil(buffer, ref src_position);
 
             if (completed)
             {
-                // 패킷 하나를 완성 했다.
+                // One packet has been fully assembled.
                 var clone = new byte[_positionToRead];
                 Array.Copy(_messageBuffer, clone, _positionToRead);
                 ClearBuffer();
@@ -125,7 +128,8 @@ internal class MessageResolver
     }
 
     /// <summary>
-    /// 헤더+바디 사이즈를 구한다. 패킷 헤더부분에 이미 전체 메시지 사이즈가 계산되어 있으므로 헤더 크기에 맞게 변환만 시켜주면 된다.
+    /// Gets total packet size (header + body). The header already stores total message size,
+    /// so this only converts according to header width.
     /// </summary>
     /// <returns></returns>
     private int GetTotalMessageSize()
@@ -143,35 +147,36 @@ internal class MessageResolver
     }
 
     /// <summary>
-    /// 목표지점으로 설정된 위치까지의 바이트를 원본 버퍼로부터 복사한다. 데이터가 모자랄 경우 현재 남은 바이트 까지만 복사한다.
+    /// Copies bytes from the source buffer up to the configured target position.
+    /// If data is insufficient, copies only the available remaining bytes.
     /// </summary>
-    /// <param name="buffer">수신된 데이터가 들어있는 버퍼.</param>
-    /// <param name="src_position">버퍼에서 읽기를 시작할 위치.</param>
-    /// <returns>다 읽었으면 true, 데이터가 모자라서 못 읽었으면 false를 리턴한다.</returns>
+    /// <param name="buffer">Buffer containing received data.</param>
+    /// <param name="src_position">Start position for reading from the buffer.</param>
+    /// <returns>True if target was reached; false if more data is needed.</returns>
     private bool ReadUntil(byte[] buffer, ref int src_position)
     {
-        // 읽어와야 할 바이트. 데이터가 분리되어 올 경우 이전에 읽어놓은 값을 빼줘서 부족한 만큼 읽어올 수 있도록 계산해 준다.
+        // Number of bytes to copy this time, accounting for previously copied bytes.
         var copy_size = _positionToRead - _currentPosition;
 
-        // 앗! 남은 데이터가 더 적다면 가능한 만큼만 복사한다.
+        // If fewer bytes remain, copy only what is available.
         if (_remainBytes < copy_size)
         {
             copy_size = _remainBytes;
         }
 
-        // 버퍼에 복사.
+        // Copy into target buffer.
         Array.Copy(buffer, src_position, _messageBuffer, _currentPosition, copy_size);
 
-        // 원본 버퍼 포지션 이동.
+        // Advance source buffer position.
         src_position += copy_size;
 
-        // 타겟 버퍼 포지션도 이동.
+        // Advance target buffer position.
         _currentPosition += copy_size;
 
-        // 남은 바이트 수.
+        // Update remaining byte count.
         _remainBytes -= copy_size;
 
-        // 목표지점에 도달 못했으면 false
+        // Return false if target position has not been reached.
         return _currentPosition >= _positionToRead;
     }
 }

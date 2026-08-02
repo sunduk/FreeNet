@@ -5,7 +5,7 @@ using System.Threading;
 namespace FreeNet;
 
 /// <summary>
-/// 현재 접속중인 전체 유저를 관리하는 클래스.
+/// Manages all currently connected users.
 /// </summary>
 public class ServerUserManager
 {

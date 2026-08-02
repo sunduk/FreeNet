@@ -4,7 +4,7 @@ using Protocol;
 namespace CSampleServer;
 
 /// <summary>
-/// 하나의 session객체를 나타낸다.
+/// Represents a single session object.
 /// </summary>
 internal class GameUser : IPeer
 {

@@ -37,7 +37,7 @@ internal class RemoteServerPeer : IPeer
             //case EPacketProtocol.CHAT_MSG_ACK:
             //	{
             //		string text = msg.pop_string();
-            //		Console.WriteLine(string.Format("받 text {0}", text));
+            //		Console.WriteLine(string.Format("received text {0}", text));
             //	}
             //                break;
             case PacketProtocol.USER_INFO:

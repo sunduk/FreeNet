@@ -13,14 +13,14 @@ internal class GameRoomPlayState : IState
     private readonly short _emptySlot = short.MaxValue;
 
     /// <summary>
-    /// 게임 보드판.
+    /// Game board.
     /// </summary>
     private readonly List<short> _gameBoard;
 
     private readonly GameRoom _room;
 
     /// <summary>
-    /// 0~49까지의 인덱스를 갖고 있는 보드판 데이터.
+    /// Board index data containing indices 0 through 49.
     /// </summary>
     private readonly List<short> _tableBoard;
 
@@ -30,7 +30,7 @@ internal class GameRoomPlayState : IState
         _room.StateManager.RegisterMessageHandler(this, PROTOCOL.MOVING_REQ, MovingReq);
         _room.StateManager.RegisterMessageHandler(this, PROTOCOL.TURN_FINISHED_REQ, TurnFinished);
 
-        // 7*7(총 49칸)모양의 보드판을 구성한다. 초기에는 모두 빈공간이므로 EMPTY_SLOT으로 채운다.
+        // Build a 7*7 board (49 cells total). Initialize all cells to EMPTY_SLOT.
         _gameBoard = [];
         _tableBoard = [];
         for (byte i = 0; i < ColumnCount * ColumnCount; ++i)
@@ -41,31 +41,31 @@ internal class GameRoomPlayState : IState
     }
 
     /// <summary>
-    /// 상대방의 세균을 감염 시킨다.
+    /// Infects opponent viruses.
     /// </summary>
     /// <param name="basis_cell">The basis cell for infection.</param>
     /// <param name="attacker">The player who is attacking.</param>
     /// <param name="victim">The player who is being attacked.</param>
     public void Infect(short basis_cell, Player attacker, Player victim)
     {
-        // 방어자의 세균중에 기준위치로 부터 1칸 반경에 있는 세균들이 감염 대상이다.
+        // Defender viruses within distance 1 of basis position are infection targets.
         var neighbors = Helper.FindNeighborCells(basis_cell, victim.Viruses, 1);
         foreach (var position in neighbors)
         {
-            // 방어자의 세균을 삭제한다.
+            // Remove defender virus.
             RemoveVirus(victim.PlayerIndex, position);
 
-            // 공격자의 세균을 추가하고,
+            // Add attacker virus,
             PutVirus(attacker.PlayerIndex, position);
         }
     }
 
     /// <summary>
-    /// 클라이언트의 이동 요청.
+    /// Handles a client move request.
     /// </summary>
-    /// <param name="sender">요청한 유저</param>
-    /// <param name="begin_pos">시작 위치</param>
-    /// <param name="target_pos">이동하고자 하는 위치</param>
+    /// <param name="sender">Requesting user.</param>
+    /// <param name="begin_pos">Start position.</param>
+    /// <param name="target_pos">Target position to move to.</param>
     public void MovingReq(Player sender, Packet receivedData)
     {
         _room.ClearReceivedProtocol();
@@ -73,68 +73,68 @@ internal class GameRoomPlayState : IState
         var begin_pos = receivedData.PopInt16();
         var target_pos = receivedData.PopInt16();
 
-        // sender차례인지 체크.
+        // Check whether it is sender's turn.
         if (!_room.IsCurrentPlayer(sender))
         {
             GameRoom.Error(sender);
             return;
         }
 
-        // begin_pos에 sender의 세균이 존재하는지 체크.
+        // Check that sender has a virus at begin_pos.
         if (_gameBoard[begin_pos] != sender.PlayerIndex)
         {
-            // 시작 위치에 해당 플레이어의 세균이 존재하지 않는다.
+            // No sender virus exists at the start position.
             GameRoom.Error(sender);
             return;
         }
 
-        // 목적지는 EMPTY_SLOT으로 설정된 빈 공간이어야 한다. 다른 세균이 자리하고 있는 곳으로는 이동할 수 없다.
+        // Target must be an EMPTY_SLOT. Cannot move to a cell occupied by another virus.
         if (_gameBoard[target_pos] != _emptySlot)
         {
-            // 목적지에 다른 세균이 존재한다.
+            // Another virus occupies the target position.
             GameRoom.Error(sender);
             return;
         }
 
-        // target_pos가 이동 또는 복제 가능한 범위인지 체크.
+        // Check whether target_pos is in move/clone range.
         var distance = Helper.GetDistance(begin_pos, target_pos);
         if (distance > 2)
         {
-            // 2칸을 초과하는 거리는 이동할 수 없다.
+            // Distances over 2 cells are invalid.
             GameRoom.Error(sender);
             return;
         }
 
         if (distance <= 0)
         {
-            // 자기 자신의 위치로는 이동할 수 없다.
+            // Cannot move to the same position.
             GameRoom.Error(sender);
             return;
         }
 
-        // 모든 체크가 정상이라면 이동을 처리한다.
-        if (distance == 1)      // 이동 거리가 한칸일 경우에는 복제를 수행한다.
+        // If all checks pass, process movement.
+        if (distance == 1)      // If move distance is 1 cell, perform clone.
         {
             PutVirus(sender.PlayerIndex, target_pos);
         }
-        else if (distance == 2)     // 이동 거리가 두칸일 경우에는 이동을 수행한다.
+        else if (distance == 2)     // If move distance is 2 cells, perform move.
         {
-            // 이전 위치에 있는 세균은 삭제한다.
+            // Remove virus from previous position.
             RemoveVirus(sender.PlayerIndex, begin_pos);
 
-            // 새로운 위치에 세균을 놓는다.
+            // Place virus at new position.
             PutVirus(sender.PlayerIndex, target_pos);
         }
 
-        // 목적지를 기준으로 주위에 존재하는 상대방 세균을 감염시켜 같은 편으로 만든다.
+        // Infect nearby opponent viruses around target and convert them to sender side.
         var opponent = _room.GetOpponentPlayer();
         Infect(target_pos, sender, opponent);
 
-        // 최종 결과를 broadcast한다.
+        // Broadcast final result.
         var msg = Packet.Create((short)PROTOCOL.PLAYER_MOVED);
-        msg.Push(sender.PlayerIndex);      // 누가
-        msg.Push(begin_pos);                // 어디서
-        msg.Push(target_pos);               // 어디로 이동 했는지
+        msg.Push(sender.PlayerIndex);      // Who moved
+        msg.Push(begin_pos);                // From where
+        msg.Push(target_pos);               // To where
         _room.Broadcast(msg);
     }
 
@@ -147,7 +147,7 @@ internal class GameRoomPlayState : IState
     }
 
     /// <summary>
-    /// 클라이언트에서 턴 연출이 모두 완료 되었을 때 호출된다.
+    /// Called when the client finishes all turn animations.
     /// </summary>
     /// <param name="sender">The player who finished the turn.</param>
     /// <param name="msg">The packet containing the turn finished request.</param>
@@ -158,41 +158,41 @@ internal class GameRoomPlayState : IState
             return;
         }
 
-        // 턴을 넘긴다.
+        // Advance to next turn.
         TurnEnd();
     }
 
     /// <summary>
-    /// 게임을 시작한다.
+    /// Starts the game.
     /// </summary>
     private void BattleStart()
     {
-        // 게임을 새로 시작할 때 마다 초기화해줘야 할 것들.
+        // Reset data required for each new game start.
         _room.Reset();
         ResetGameData();
 
         _room.EachPlayer(player =>
         {
-            // 게임 시작 메시지 전송.
+            // Send game-start message.
             var msg = Packet.Create((short)PROTOCOL.GAME_START);
 
-            // 해당 플레이어 본인의 인덱스.
+            // Current player's own index.
             msg.Push(player.PlayerIndex);
 
-            // 플레이어들의 세균 위치 전송.
+            // Send all players' virus positions.
             msg.Push((byte)_room.GetPlayerCount());
             _room.EachPlayer(p =>
             {
-                msg.Push(p.PlayerIndex);      // 누구인지 구분하기 위한 플레이어 인덱스.
+                msg.Push(p.PlayerIndex);      // Player index used for identification.
 
-                // 플레이어가 소지한 세균들의 전체 개수.
+                // Total number of viruses owned by this player.
                 var cell_count = (byte)p.Viruses.Count;
                 msg.Push(cell_count);
-                // 플레이어의 세균들의 위치정보.
+                // Position data for this player's viruses.
                 p.Viruses.ForEach(position => msg.PushInt16(position));
             });
 
-            // 첫 턴을 진행할 플레이어 인덱스.
+            // Player index that takes the first turn.
             msg.Push(_room.GetCurrentPlayer().PlayerIndex);
 
             player.Send(msg);
@@ -204,11 +204,11 @@ internal class GameRoomPlayState : IState
         var count_1p = _room.GetPlayer(0).GetVirusCount();
         var count_2p = _room.GetPlayer(1).GetVirusCount();
 
-        // 우승자 가리기.
+        // Determine winner.
         byte win_player_index;
         if (count_1p == count_2p)
         {
-            // 동점인 경우.
+            // Tie case.
             win_player_index = byte.MaxValue;
         }
         else
@@ -226,7 +226,7 @@ internal class GameRoomPlayState : IState
     }
 
     /// <summary>
-    /// 보드판에 플레이어의 세균을 배치한다.
+    /// Places a player's virus on the board.
     /// </summary>
     /// <param name="playerIndex"></param>
     /// <param name="row"></param>
@@ -238,7 +238,7 @@ internal class GameRoomPlayState : IState
     }
 
     /// <summary>
-    /// 보드판에 플레이어의 세균을 배치한다.
+    /// Places a player's virus on the board.
     /// </summary>
     /// <param name="playerIndex"></param>
     /// <param name="position"></param>
@@ -249,7 +249,7 @@ internal class GameRoomPlayState : IState
     }
 
     /// <summary>
-    /// 배치된 세균을 삭제한다.
+    /// Removes a placed virus.
     /// </summary>
     /// <param name="playerIndex"></param>
     /// <param name="position"></param>
@@ -260,28 +260,28 @@ internal class GameRoomPlayState : IState
     }
 
     /// <summary>
-    /// 게임 데이터를 초기화 한다. 게임을 새로 시작할 때 마다 초기화 해줘야 할 것들을 넣는다.
+    /// Resets game data needed whenever a new game starts.
     /// </summary>
     private void ResetGameData()
     {
-        // 플레이어 데이터 초기화.
+        // Reset player data.
         _room.EachPlayer(player => player.Reset());
 
-        // 보드판 데이터 초기화.
+        // Reset board data.
         for (var i = 0; i < _gameBoard.Count; ++i)
         {
             _gameBoard[i] = _emptySlot;
         }
-        // 1번 플레이어의 세균은 왼쪽위(0,0), 오른쪽위(0,6) 두군데에 배치한다.
+        // Place player 1 viruses at top-left (0,0) and top-right (0,6).
         PutVirus(0, 0, 0);
         PutVirus(0, 0, 6);
-        // 2번 플레이어는 세균은 왼쪽아래(6,0), 오른쪽아래(6,6) 두군데에 배치한다.
+        // Place player 2 viruses at bottom-left (6,0) and bottom-right (6,6).
         PutVirus(1, 6, 0);
         PutVirus(1, 6, 6);
     }
 
     /// <summary>
-    /// 턴을 시작하라고 클라이언트들에게 알려 준다.
+    /// Notifies clients to start the turn.
     /// </summary>
     private void StartTurn()
     {
@@ -291,21 +291,21 @@ internal class GameRoomPlayState : IState
     }
 
     /// <summary>
-    /// 턴을 종료한다. 게임이 끝났는지 확인하는 과정을 수행한다.
+    /// Ends the turn and checks whether the game has finished.
     /// </summary>
     private void TurnEnd()
     {
-        // 보드판 상태를 확인하여 게임이 끝났는지 검사한다.
+        // Check board state to determine whether the game is over.
         if (!Helper.CanPlayMore(_tableBoard, _room.GetOpponentPlayer(), _room.GetPlayers()))
         {
             GameOver();
             return;
         }
 
-        // 아직 게임이 끝나지 않았다면 다음 플레이어로 턴을 넘긴다.
+        // If the game is not over, pass turn to the next player.
         _room.TurnNext();
 
-        // 턴을 시작한다.
+        // Start the turn.
         StartTurn();
     }
 }

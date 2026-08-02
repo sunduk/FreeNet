@@ -1,20 +1,20 @@
 ﻿namespace GameServer;
 
 /// <summary>
-/// 게임방들을 관리하는 룸매니저.
+/// Room manager that manages game rooms.
 /// </summary>
 public class GameRoomManager
 {
     private readonly List<GameRoom> _rooms = [];
 
     /// <summary>
-    /// 매칭을 요청한 유저들을 넘겨 받아 게임 방을 생성한다.
+    /// Creates a game room for users who requested matching.
     /// </summary>
-    /// <param name="user1">매칭을 요청한 첫 번째 유저 객체</param>
-    /// <param name="user2">매칭을 요청한 두 번째 유저 객체</param>
+    /// <param name="user1">First user who requested matching.</param>
+    /// <param name="user2">Second user who requested matching.</param>
     public void CreateRoom(GameUser user1, GameUser user2)
     {
-        // 게임 방을 생성하여 입장 시킴.
+        // Create the game room and let players enter.
         var battleroom = new GameRoom(this);
         _rooms.Add(battleroom);
 
@@ -25,9 +25,9 @@ public class GameRoomManager
     }
 
     /// <summary>
-    /// 게임 방을 제거한다.
+    /// Removes a game room.
     /// </summary>
-    /// <param name="room">제거할 게임 방 객체</param>
+    /// <param name="room">Game room to remove.</param>
     public void RemoveRoom(GameRoom room)
     {
         room.Destroy();

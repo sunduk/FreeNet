@@ -4,7 +4,7 @@ using System.Text;
 namespace FreeNet;
 
 /// <summary>
-/// byte[] 버퍼를 참조로 보관하여 pop_xxx 매소드 호출 순서대로 데이터 변환을 수행한다.
+/// Holds a byte[] buffer by reference and converts data in the order pop_xxx methods are called.
 /// </summary>
 public class Packet
 {
@@ -15,14 +15,14 @@ public class Packet
     /// <param name="owner">The owner.</param>
     public Packet(ArraySegment<byte> buffer, UserToken owner)
     {
-        // 참조로만 보관하여 작업한다. 복사가 필요하면 별도로 구현해야 한다.
+        // Operates on buffer references only. Implement copying separately if needed.
         Buffer = buffer.Array;
 
-        // 헤더는 읽을필요 없으니 그 이후부터 시작한다.
+        // Skip the header and start after it.
         Position = Defines.HEADERSIZE;
         Size = buffer.Count;
 
-        // 프로토콜 아이디만 확인할 경우도 있으므로 미리 뽑아놓는다.
+        // Pre-read protocol ID because some paths only need to check it.
         ProtocolId = PopProtocolId();
         Position = Defines.HEADERSIZE;
 
@@ -36,10 +36,10 @@ public class Packet
     /// <param name="owner">The owner.</param>
     public Packet(byte[] buffer, UserToken owner)
     {
-        // 참조로만 보관하여 작업한다. 복사가 필요하면 별도로 구현해야 한다.
+        // Operates on buffer references only. Implement copying separately if needed.
         Buffer = buffer;
 
-        // 헤더는 읽을필요 없으니 그 이후부터 시작한다.
+        // Skip the header and start after it.
         Position = Defines.HEADERSIZE;
 
         Owner = owner;
@@ -89,7 +89,7 @@ public class Packet
     {
         Packet packet = new();
 
-        // TODO: 다음 리팩토링 대상은 바로 여기다. CPacketBufferManager!!!
+        // TODO: Next refactoring target is this spot: CPacketBufferManager!!!
         //CPacket packet = CPacketBufferManager.pop();
         packet.SetProtocol(protocol_id);
         return packet;
@@ -182,11 +182,11 @@ public class Packet
     /// <returns>System.String.</returns>
     public string PopString()
     {
-        // 문자열 길이는 최대 2바이트 까지. 0 ~ 32767
+        // String length is stored in 2 bytes. Range: 0 ~ 32767.
         var len = BitConverter.ToInt16(Buffer, Position);
         Position += sizeof(short);
 
-        // 인코딩은 utf8로 통일한다.
+        // Standardize encoding as UTF-8.
         var data = Encoding.UTF8.GetString(Buffer, Position, len);
         Position += len;
 
@@ -269,7 +269,7 @@ public class Packet
     /// </summary>
     public void RecordSize()
     {
-        // header + body 를 합한 사이즈를 입력한다.
+        // Write the combined size of header + body.
         var header = BitConverter.GetBytes(Position);
         header.CopyTo(Buffer, 0);
     }
@@ -283,7 +283,7 @@ public class Packet
         ProtocolId = protocol_id;
         //this.buffer = new byte[1024];
 
-        // 헤더는 나중에 넣을것이므로 데이터 부터 넣을 수 있도록 위치를 점프시켜놓는다.
+        // Header is written later, so jump position to where data writing begins.
         Position = Defines.HEADERSIZE;
 
         PushInt16(protocol_id);

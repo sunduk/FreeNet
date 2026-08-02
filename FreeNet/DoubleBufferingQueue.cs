@@ -4,26 +4,28 @@ using System.Threading;
 namespace FreeNet;
 
 /// <summary>
-/// 두개의 큐를 교체해가며 활용한다. IO스레드에서 입력큐에 막 쌓아놓고, 로직스레드에서 큐를 뒤바꾼뒤(swap) 쌓아놓은 패킷을 가져가 처리한다. 참고:
+/// Uses two queues by swapping references.
+/// The I/O thread keeps enqueuing to the input queue, and the logic thread swaps queues and processes
+/// the accumulated packets from the output queue. Reference:
 /// http://roadster.egloos.com/m/4199854
 /// </summary>
 internal class DoubleBufferingQueue : ILogicQueue
 {
     private readonly Lock _cs_write;
 
-    // 실제 데이터가 들어갈 큐.
+    // Queues that store actual data.
     private readonly Queue<Packet> _queue1;
 
     private readonly Queue<Packet> _queue2;
 
-    // 각각의 큐에 대한 참조.
+    // References to each queue.
     private Queue<Packet> _refInput;
 
     private Queue<Packet> _refOutput;
 
     public DoubleBufferingQueue()
     {
-        // 초기 세팅은 큐와 참조가 1:1로 매칭되게 설정한다. ref_input - queue1 ref)output - queue2
+        // Initial mapping keeps queue and reference in a 1:1 match. refInput->queue1, refOutput->queue2
         _queue1 = new Queue<Packet>();
         _queue2 = new Queue<Packet>();
         _refInput = _queue1;
@@ -33,9 +35,9 @@ internal class DoubleBufferingQueue : ILogicQueue
     }
 
     /// <summary>
-    /// IO스레드에서 전달한 패킷을 보관한다.
+    /// Stores packets received from the I/O thread.
     /// </summary>
-    /// <param name="msg">보관할 패킷</param>
+    /// <param name="msg">The packet to store.</param>
     void ILogicQueue.Enqueue(Packet msg)
     {
         using var scope = _cs_write.EnterScope();
@@ -49,7 +51,7 @@ internal class DoubleBufferingQueue : ILogicQueue
     }
 
     /// <summary>
-    /// 입력큐와 출력큐를 뒤바꾼다.
+    /// Swaps the input and output queues.
     /// </summary>
     private void Swap()
     {

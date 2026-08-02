@@ -5,21 +5,21 @@ public static class Helper
     private static readonly byte ColumnCount = 7;
 
     /// <summary>
-    /// 포지션으로부터 가로 인덱스를 구한다.
+    /// Gets the column index from a position.
     /// </summary>
     /// <param name="cell"></param>
     /// <returns></returns>
     public static short CalcColumn(short position) => (short)(position % ColumnCount);
 
     /// <summary>
-    /// 포지션으로부터 세로 인덱스를 구한다.
+    /// Gets the row index from a position.
     /// </summary>
     /// <param name="cell"></param>
     /// <returns></returns>
     public static short CalcRow(short position) => (short)(position / ColumnCount);
 
     /// <summary>
-    /// 게임을 지속 할 수 있는지 체크한다.
+    /// Checks whether the game can continue.
     /// </summary>
     /// <param name="board">The list of all cells on the board.</param>
     /// <param name="currentPlayer">The current player.</param>
@@ -39,7 +39,7 @@ public static class Helper
     }
 
     /// <summary>
-    /// 이동 가능한 셀을 찾아서 리스트로 돌려준다.
+    /// Finds movable cells and returns them as a list.
     /// </summary>
     /// <param name="basisCell">The basis cell to find available cells for.</param>
     /// <param name="totalCells">The list of all cells on the board.</param>
@@ -58,7 +58,7 @@ public static class Helper
     }
 
     /// <summary>
-    /// 주위에 있는 셀의 위치를 찾아서 리스트로 리턴해 준다.
+    /// Finds nearby cell positions and returns them as a list.
     /// </summary>
     /// <param name="basisCell">The basis cell to find neighbors for.</param>
     /// <param name="targets">The list of target cells to consider.</param>
@@ -71,7 +71,7 @@ public static class Helper
     }
 
     /// <summary>
-    /// cell 인덱스를 넣으면 둘 사이의 거리값을 리턴해 준다. 한칸이 차이나면 1, 두칸이 차이나면 2
+    /// Returns distance between two cell indices. One-cell gap = 1, two-cell gap = 2.
     /// </summary>
     /// <param name="from">The starting position.</param>
     /// <param name="to">The ending position.</param>
@@ -96,12 +96,12 @@ public static class Helper
         var x = (short)Math.Abs(distance.x);
         var y = (short)Math.Abs(distance.y);
 
-        // x,y중 큰 값이 실제 두 위치 사이의 거리를 뜻한다.
+        // The larger of x and y represents the actual distance between the two positions.
         return Math.Max(x, y);
     }
 
     /// <summary>
-    /// (row, col)형식의 좌표를 포지션으로 변환한다.
+    /// Converts (row, col) coordinates to a position.
     /// </summary>
     /// <param name="row">The row index.</param>
     /// <param name="column">The column index.</param>
@@ -142,7 +142,7 @@ public static class Helper
     }
 
     /// <summary>
-    /// 포지션을 (row,col)형식의 좌표로 변환한다.
+    /// Converts a position to (row, col) coordinates.
     /// </summary>
     /// <param name="cell">The position to convert.</param>
     /// <returns>The corresponding (row, col) coordinates.</returns>

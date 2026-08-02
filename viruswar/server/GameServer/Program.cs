@@ -2,9 +2,9 @@
 using GameServer;
 
 var service = new NetworkService(true);
-// 콜백 매소드 설정.
+// Set callback methods.
 service.SessionCreatedCallback += OnSessionCreated;
-// 초기화.
+// Initialize.
 service.Initialize(10000, 1024);
 service.Listen("0.0.0.0", 20000, 100);
 

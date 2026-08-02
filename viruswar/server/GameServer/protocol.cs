@@ -1,55 +1,56 @@
 ﻿namespace GameServer;
 
 /// <summary>
-/// 프로토콜 정의. 서버에서 클라이언트로 가는 패킷: S -&gt; C 클라이언트에서 서버로 가는 패킷: C -&gt; S
+/// Protocol definitions.
+/// Packets from server to client: S -&gt; C. Packets from client to server: C -&gt; S.
 /// </summary>
 public enum PROTOCOL : short
 {
     //-------------------------------------
-    // 0 이하는 종료코드로 사용되므로 게임에서 쓰지 말것!!
+    // Values <= 0 are reserved as termination/system codes. Do not use for game protocols.
     //-------------------------------------
     BEGIN = 0,
 
     //-------------------------------------
-    // 로비 프로토콜.
+    // Lobby protocols.
     //-------------------------------------
-    // C -> S 게임방 입장 요청.
+    // C -> S game room enter request.
     ENTER_GAME_ROOM_REQ = 1,
 
-    // S -> C 게임장 입장 요청에 대한 응답.
+    // S -> C response to game room enter request.
     ENTER_GAME_ROOM_ACK = 2,
 
-    // S -> C 매칭이 성공했다. 방에 입장하고 로딩을 시작해라.
+    // S -> C matching succeeded. Enter room and start loading.
     START_LOADING = 3,
 
-    // 동시 접속자 정보 요청/응답.
+    // Concurrent user count request/response.
     CONCURRENT_USERS = 4,
 
     //-------------------------------------
-    // 게임 프로토콜.
+    // Game protocols.
     //-------------------------------------
-    // C -> S 게임방 리소스 로딩을 완료했다. 게임을 시작해도 좋다.
+    // C -> S game-room resource loading complete. Ready to start game.
     READY_TO_START = 10,
 
-    // 게임 시작.
+    // Game start.
     GAME_START = 11,
 
-    // 턴 시작.
+    // Start turn.
     START_PLAYER_TURN = 12,
 
-    // 클라이언트의 이동 요청.
+    // Client move request.
     MOVING_REQ = 13,
 
-    // 플레이어가 이동 했음을 알린다.
+    // Notify that a player moved.
     PLAYER_MOVED = 14,
 
-    // 클라이언트의 턴 연출이 끝났음을 알린다.
+    // Notify that the client's turn animation is finished.
     TURN_FINISHED_REQ = 15,
 
-    // 게임 종료.
+    // Game over.
     GAME_OVER = 16,
 
-    // 방이 삭제됨.
+    // Room removed.
     ROOM_REMOVED = 17,
 
     END

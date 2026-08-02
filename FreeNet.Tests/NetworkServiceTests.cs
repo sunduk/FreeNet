@@ -6,6 +6,15 @@ namespace FreeNet.Tests;
 public class NetworkServiceTests
 {
     [Test]
+    public async Task Connector_can_be_constructed_and_has_null_callback()
+    {
+        var service = new NetworkService();
+        var connector = new Connector(service);
+        _ = await Assert.That(connector is not null).IsTrue();
+        _ = await Assert.That(connector?.ConnectedCallback is null).IsTrue();
+    }
+
+    [Test]
     public async Task Default_constructor_has_no_logic_entry()
     {
         var service = new NetworkService();
@@ -13,10 +22,11 @@ public class NetworkServiceTests
     }
 
     [Test]
-    public async Task Logic_thread_constructor_creates_logic_entry()
+    public async Task Default_Initialize_delegates_and_creates_usermanager()
     {
-        var service = new NetworkService(useLogicThread: true);
-        _ = await Assert.That(service.LogicEntry is not null).IsTrue();
+        var service = new NetworkService();
+        service.Initialize();
+        _ = await Assert.That(service.Usermanager is not null).IsTrue();
     }
 
     [Test]
@@ -36,31 +46,10 @@ public class NetworkServiceTests
     }
 
     [Test]
-    public async Task Default_Initialize_delegates_and_creates_usermanager()
+    public async Task Logic_thread_constructor_creates_logic_entry()
     {
-        var service = new NetworkService();
-        service.Initialize();
-        _ = await Assert.That(service.Usermanager is not null).IsTrue();
-    }
-
-    [Test]
-    public async Task OnSendCompleted_swallows_exception_when_token_is_null()
-    {
-        var service = new NetworkService();
-        var args = new SocketAsyncEventArgs();
-        InvokePrivate(service, "OnSendCompleted", this, args);
-        _ = await Assert.That(service.Usermanager is not null).IsTrue();
-    }
-
-    [Test]
-    public async Task OnSendCompleted_calls_process_send_when_token_is_set()
-    {
-        var service = new NetworkService();
-        var token = new UserToken(null!);
-        var args = new SocketAsyncEventArgs();
-        args.UserToken = token;
-        InvokePrivate(service, "OnSendCompleted", this, args);
-        _ = await Assert.That(service.Usermanager is not null).IsTrue();
+        var service = new NetworkService(useLogicThread: true);
+        _ = await Assert.That(service.LogicEntry is not null).IsTrue();
     }
 
     [Test]
@@ -77,12 +66,25 @@ public class NetworkServiceTests
     }
 
     [Test]
-    public async Task Connector_can_be_constructed_and_has_null_callback()
+    public async Task OnSendCompleted_calls_process_send_when_token_is_set()
     {
         var service = new NetworkService();
-        var connector = new Connector(service);
-        _ = await Assert.That(connector is not null).IsTrue();
-        _ = await Assert.That(connector.ConnectedCallback is null).IsTrue();
+        var token = new UserToken(null!);
+        var args = new SocketAsyncEventArgs
+        {
+            UserToken = token
+        };
+        InvokePrivate(service, "OnSendCompleted", this, args);
+        _ = await Assert.That(service.Usermanager is not null).IsTrue();
+    }
+
+    [Test]
+    public async Task OnSendCompleted_swallows_exception_when_token_is_null()
+    {
+        var service = new NetworkService();
+        var args = new SocketAsyncEventArgs();
+        InvokePrivate(service, "OnSendCompleted", this, args);
+        _ = await Assert.That(service.Usermanager is not null).IsTrue();
     }
 
     private static void InvokePrivate(object target, string name, params object[] args)

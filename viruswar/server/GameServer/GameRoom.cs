@@ -5,29 +5,31 @@ using GameServer.State;
 namespace GameServer;
 
 /// <summary>
-/// 게임방의 공통적인 기능을 담고 있는 클래스. 게임에 특화된 로직들은 각 상태에서 처리한다. * 게임 패킷 처리 순서 - (클라이언트에서 패킷 전송) ---&gt; (유저) ---&gt; (게임방)
-/// ---&gt; (게임방 상태 객체)
+/// Class containing common game-room functionality.
+/// Game-specific logic is handled in each state object.
+/// Packet flow: (client sends packet) -&gt; (user) -&gt; (game room) -&gt; (game room state object)
 /// </summary>
 public class GameRoom
 {
     /// <summary>
-    /// 현재 플레이어들.
+    /// Current players.
     /// </summary>
     private readonly List<Player> _players;
 
     /// <summary>
-    /// 프로토콜을 받았는지, 모두한테서 받았는지 등을 체크하는 변수. 플레이어간 상태 동기화를 위해 필요하다.
+    /// Tracks whether a protocol was received, and whether all players have received it.
+    /// Needed for state synchronization across players.
     /// </summary>
     private readonly Dictionary<byte, PROTOCOL> _receivedProtocol;
 
     /// <summary>
-    /// ---------------------------------------------- GameRoom의 공통적인 부분. ----------------------------------------------
-    /// 게임방들을 관리하는 매니저 객체. 플레이어가 모두 나갔을 때 방을 삭제하기 위해 필요하다.
+    /// ---------------------------------------------- Common GameRoom infrastructure. ----------------------------------------------
+    /// Manager that controls game rooms; used to remove the room when all players leave.
     /// </summary>
     private readonly GameRoomManager _roomManager;
 
     /// <summary>
-    /// 현재 턴을 진행하고 있는 플레이어의 인덱스.
+    /// Index of the player currently taking a turn.
     /// </summary>
     private byte _currentTurnPlayer;
 
@@ -51,7 +53,7 @@ public class GameRoom
     }
 
     /// <summary>
-    /// 게임 상태 관리 매니저. 게임 로직 진행은 각 상태 클래스에서 처리한다.
+    /// Game state manager. Gameplay logic is handled by each state class.
     /// </summary>
     public StateManager<Player, Packet> StateManager { get; private set; }
 
@@ -62,8 +64,9 @@ public class GameRoom
     public static void Error(Player player) => player.Disconnect();
 
     /// <summary>
-    /// 모든 플레이어가 해당 프로토콜을 받았는지 체크함. 플레이어들의 클라이언트 상태 동기화가 필요할 때 호출하여 체크한다. 못받은 플레이어가 한명이라도 있다면 false를 리턴. 모두한테서 받았다면 상태를
-    /// 초기화 하고 true를 리턴.
+    /// Checks whether all players have received the given protocol.
+    /// Call this when client-state synchronization is required.
+    /// Returns false if even one player has not received it; otherwise clears state and returns true.
     /// </summary>
     /// <param name="protocol"></param>
     /// <returns></returns>
@@ -122,7 +125,7 @@ public class GameRoom
     }
 
     /// <summary>
-    /// 매칭 성공 후 플레이어들을 방에 입장 시킨다.
+    /// Places players into the room after matching succeeds.
     /// </summary>
     /// <param name="player1"></param>
     /// <param name="player2"></param>
@@ -146,19 +149,19 @@ public class GameRoom
     }
 
     /// <summary>
-    /// 현재 턴을 진행중인 플레이어를 리턴한다.
+    /// Returns the player currently taking a turn.
     /// </summary>
     /// <returns></returns>
     public Player GetCurrentPlayer() => _players[_currentTurnPlayer];
 
     /// <summary>
-    /// 상대방 플레이어를 리턴한다.
+    /// Returns the opponent player.
     /// </summary>
     /// <returns></returns>
     public Player GetOpponentPlayer(Player who) => who.PlayerIndex == 0 ? _players[1] : _players[0];
 
     /// <summary>
-    /// 현재 턴 플레이어의 상대방 플레이어를 리턴한다.
+    /// Returns the opponent of the current-turn player.
     /// </summary>
     /// <returns></returns>
     public Player GetOpponentPlayer() => GetOpponentPlayer(GetCurrentPlayer());
@@ -170,14 +173,14 @@ public class GameRoom
     public List<Player> GetPlayers() => _players;
 
     /// <summary>
-    /// sender가 현재 턴을 진행중인 플레이어가 맞는지 확인한다.
+    /// Checks whether sender is the player currently taking a turn.
     /// </summary>
     /// <param name="sender"></param>
     /// <returns></returns>
     public bool IsCurrentPlayer(Player sender) => _currentTurnPlayer == sender.PlayerIndex;
 
     /// <summary>
-    /// 플레이어의 접속이 끊겼을 때.
+    /// Called when a player's connection is closed.
     /// </summary>
     /// <param name="player"></param>
     public void OnPlayerRemoved(Player player)
@@ -199,14 +202,15 @@ public class GameRoom
         var protocol = (PROTOCOL)msg.PopProtocolId();
         if (IsReceived(owner.PlayerIndex, protocol))
         {
-            // 플레이어가 이미 해당 프로토콜을 전송했다. 중복 처리 하지 않고 리턴한다.
+            // Player already sent this protocol. Return without duplicate handling.
             return;
         }
 
-        // 프로토콜을 받았다고 기록한다.
+        // Record that this protocol was received.
         CheckedProtocol(owner.PlayerIndex, protocol);
 
-        // 상태 매니저에 패킷을 보낸 플레이어와 패킷 내용을 전달한다. 이후 게임 로직은 상태 매니저를 통해 현재 수행중인 상태 객체에서 처리된다.
+        // Forward sender and packet data to the state manager.
+        // Subsequent game logic is handled by the currently active state object.
         StateManager.SendStateMessage(protocol, owner, msg);
     }
 
@@ -222,7 +226,7 @@ public class GameRoom
         }
         else
         {
-            // 다시 첫번째 플레이어의 턴으로 만들어 준다.
+            // Wrap back to the first player's turn.
             _currentTurnPlayer = GetPlayer(0).PlayerIndex;
         }
     }
@@ -230,7 +234,7 @@ public class GameRoom
     private void AddPlayer(Player newbie) => _players.Add(newbie);
 
     /// <summary>
-    /// 플레이어가 해당 프로토콜을 받았다고 기록해놓음.
+    /// Records that a player received the specified protocol.
     /// </summary>
     /// <param name="player_index"></param>
     /// <param name="protocol"></param>
@@ -245,7 +249,7 @@ public class GameRoom
     }
 
     /// <summary>
-    /// 플레이어가 해당 프로토콜을 이미 받았는지 체크함.
+    /// Checks whether a player already received the specified protocol.
     /// </summary>
     /// <param name="player_index"></param>
     /// <param name="protocol"></param>

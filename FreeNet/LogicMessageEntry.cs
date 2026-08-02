@@ -5,7 +5,7 @@ using System.Threading;
 namespace FreeNet;
 
 /// <summary>
-/// 수신된 패킷을 받아 로직 스레드에서 분배하는 역할을 담당한다.
+/// Receives completed packets and dispatches them on the logic thread.
 /// </summary>
 public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
 {
@@ -14,16 +14,16 @@ public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
 
     void IMessageDispatcher.OnMessage(UserToken user, ArraySegment<byte> buffer)
     {
-        // 여긴 IO스레드에서 호출된다. 완성된 패킷을 메시지큐에 넣어준다.
+        // Called on the I/O thread. Enqueue the completed packet.
         Packet msg = new(buffer, user);
         _messageQueue.Enqueue(msg);
 
-        // 로직 스레드를 깨워 일을 시킨다.
+        // Wake the logic thread to process work.
         _ = _logicEvent.Set();
     }
 
     /// <summary>
-    /// 로직 스레드 시작.
+    /// Starts the logic thread.
     /// </summary>
     public void Start()
     {
@@ -49,16 +49,16 @@ public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
     }
 
     /// <summary>
-    /// 로직 스레드.
+    /// Logic thread loop.
     /// </summary>
     private void DoLogic()
     {
         while (true)
         {
-            // 패킷이 들어오면 알아서 깨워 주겠지.
+            // A packet arrival will wake this thread.
             _ = _logicEvent.WaitOne();
 
-            // 메시지를 분배한다.
+            // Dispatch messages.
             DispatchAll(_messageQueue.GetAll());
         }
     }

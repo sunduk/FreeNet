@@ -4,7 +4,7 @@ using GameServer.UserState;
 namespace GameServer;
 
 /// <summary>
-/// 하나의 session객체를 나타낸다.
+/// Represents a single session object.
 /// </summary>
 public class GameUser : IPeer
 {
@@ -73,7 +73,7 @@ public class GameUser : IPeer
     {
         msg.RecordSize();
 
-        // 소켓 버퍼로 보내기 전에 복사해 놓음.
+        // Copy before sending to the socket buffer.
         var clone = new byte[msg.Position];
         Array.Copy(msg.Buffer, clone, msg.Position);
 
