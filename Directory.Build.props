@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
 
     <!-- Semantic version base -->
-    <VersionPrefix>0.1.2</VersionPrefix>
+    <VersionPrefix>0.2.0</VersionPrefix>
     <BuildTimestampUtc>$([System.DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))</BuildTimestampUtc>
 
     <!-- Automatically generate package/assembly semantic versions for build outputs -->
@@ -13,8 +13,8 @@
     <Version Condition="'$(Version)' == '' and '$(Configuration)' != 'Release'">$(VersionPrefix)-dev.$(BuildTimestampUtc)</Version>
 
     <!-- Stable runtime binding version; increment for intentional breaking API changes -->
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.2.0</FileVersion>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
     <InformationalVersion Condition="'$(SourceRevisionId)' != ''">$(Version)+sha.$(SourceRevisionId)</InformationalVersion>
     <InformationalVersion Condition="'$(SourceRevisionId)' == ''">$(Version)</InformationalVersion>
   </PropertyGroup>
