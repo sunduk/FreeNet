@@ -243,9 +243,6 @@ public class GameRoomTests
     private static GameUser CreateUserWithBoundToken()
     {
         var token = new UserToken(null!);
-        var recvArgs = new SocketAsyncEventArgs();
-        recvArgs.SetBuffer(new byte[1024], 0, 1024);
-        token.SetEventArgs(recvArgs, new SocketAsyncEventArgs());
         token.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         return new GameUser(token);
     }

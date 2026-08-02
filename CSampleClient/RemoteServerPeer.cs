@@ -14,7 +14,7 @@ internal class RemoteServerPeer : IPeer
     public RemoteServerPeer(UserToken token)
     {
         Token = token;
-        Token.SetPeer(this);
+        Token.Peer = this;
     }
 
     /// <summary>

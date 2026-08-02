@@ -1,127 +1,70 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.IO.Pipelines;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace FreeNet;
 
 /// <summary>
-/// Represents a user connection.
+/// Represents a user connection. I/O is handled by the async Pipelines loops.
 /// </summary>
-public class UserToken(IMessageDispatcher dispatcher)
+public partial class UserToken(IMessageDispatcher? dispatcher = null)
 {
     /// <summary>
-    /// Starts heartbeat. S -&gt; C
+    /// Starts heartbeat. S → C
     /// </summary>
     public const short SYS_START_HEARTBEAT = -2;
 
     /// <summary>
-    /// Updates heartbeat. C -&gt; S
+    /// Updates heartbeat. C → S
     /// </summary>
     public const short SYS_UPDATE_HEARTBEAT = -3;
 
-    /// <summary>
-    /// Session closed event. Callback method invoked when the session ends.
-    /// </summary>
-    public ClosedDelegate OnSessionClosed;
-
-    /// <summary>
-    /// Close acknowledgment. C -&gt; S
-    /// </summary>
     private const short SYS_CLOSE_ACK = -1;
 
-    /// <summary>
-    /// Close request. S -&gt; C
-    /// </summary>
     private const short SYS_CLOSE_REQ = 0;
 
-    /// <summary>
-    /// Resolver that interprets byte data as packets.
-    /// </summary>
     private readonly MessageResolver _messageResolver = new();
 
-    /// <summary>
-    /// Changed from queue to list to support BufferList.
-    /// </summary>
-    private readonly List<ArraySegment<byte>> _sendingList = [];
-
-    /// <summary>
-    /// Object used for locking the sending list.
-    /// </summary>
-    private readonly Lock _sendingQueueLock = new();
+    private readonly Pipe _sendPipe = new();
 
     private bool _autoHeartbeat;
+
     private State _currentState = State.Idle;
-    private HeartbeatSender _heartbeatSender;
+
+    private HeartbeatSender? _heartbeatSender;
+
+    private CancellationTokenSource? _ioCancellation;
 
     /// <summary>
     /// Flag to prevent duplicate close handling. 0 = connected. 1 = closed.
     /// </summary>
     private int _isClosed;
 
-    /// <summary>
-    /// Session object implemented by the application.
-    /// </summary>
-    private IPeer _peer = null;
-
-    public delegate void ClosedDelegate(UserToken token);
+    private Task? _receiveLoopTask;
+    private Task? _sendLoopTask;
 
     /// <summary>
-    /// Enum representing the current connection state.
+    /// Session closed event. Callback method invoked when the session ends.
     /// </summary>
-    private enum State
-    {
-        /// <summary>
-        /// Idle.
-        /// </summary>
-        Idle,
-
-        /// <summary>
-        /// Connected.
-        /// </summary>
-        Connected,
-
-        /// <summary>
-        /// Closing is reserved. If disconnect is called while items remain in the sending list,
-        /// this state ensures the connection closes after all remaining packets are sent.
-        /// </summary>
-        ReserveClosing,
-
-        /// <summary>
-        /// Socket is fully closed.
-        /// </summary>
-        Closed,
-    }
+    public event EventHandler<EventArgs<UserToken>>? SessionClosed;
 
     /// <summary>
     /// Gets the latest heartbeat time.
     /// </summary>
-    /// <value>The latest heartbeat time.</value>
     public long LatestHeartbeatTime { get; private set; } = DateTime.Now.Ticks;
 
     /// <summary>
-    /// Gets the receive event arguments.
+    /// Gets or sets the peer.
     /// </summary>
-    /// <value>The receive event arguments.</value>
-    public SocketAsyncEventArgs ReceiveEventArgs { get; private set; }
-
-    /// <summary>
-    /// Gets the send event arguments.
-    /// </summary>
-    /// <value>The send event arguments.</value>
-    public SocketAsyncEventArgs SendEventArgs { get; private set; }
+    public IPeer? Peer { private get; set; }
 
     /// <summary>
     /// Gets or sets the socket.
     /// </summary>
-    /// <value>The socket.</value>
-    public Socket Socket { get; set; }
+    public Socket? Socket { get; set; }
 
     /// <summary>
     /// Ends the connection by sending a close code and letting the remote side disconnect first.
-    /// This is mainly used when the server disconnects a client. To avoid leaving TIME_WAIT on the
-    /// server, use this method instead of Disconnect.
+    /// Prefer this over <see cref="Close"/> on the server side to avoid leaving TIME_WAIT.
     /// </summary>
     public void Ban()
     {
@@ -135,6 +78,9 @@ public class UserToken(IMessageDispatcher dispatcher)
         }
     }
 
+    /// <summary>
+    /// Immediately closes the connection and notifies the peer.
+    /// </summary>
     public void Close()
     {
         // Prevent duplicate execution.
@@ -145,32 +91,42 @@ public class UserToken(IMessageDispatcher dispatcher)
 
         if (_currentState == State.Closed)
         {
-            // already closed.
             return;
         }
 
         _currentState = State.Closed;
+
+        // Cancel async I/O loops.
+        try
+        {
+            _ioCancellation?.Cancel();
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
         Socket?.Close();
         Socket = null;
 
-        SendEventArgs?.UserToken = null;
-
-        ReceiveEventArgs?.UserToken = null;
-
-        _sendingList.Clear();
         _messageResolver.ClearBuffer();
 
-        if (_peer is not null)
+        if (Peer is not null)
         {
             var msg = Packet.Create(-1);
             if (dispatcher is not null)
             {
-                dispatcher.OnMessage(this, new ArraySegment<byte>(msg.Buffer, 0, msg.Position));
+                dispatcher.OnMessage(this, new ArraySegment<byte>(msg.Buffer ?? [], 0, msg.Position));
             }
             else
             {
-                OnMessage(msg);
+                OnMessage(msg); // fires SessionClosed internally via SYS_CLOSE_ACK path
             }
+        }
+        else
+        {
+            // No peer registered, but still notify session-level listeners (e.g. NetworkService).
+            SessionClosed?.Invoke(this, new EventArgs<UserToken>(this));
         }
     }
 
@@ -181,30 +137,35 @@ public class UserToken(IMessageDispatcher dispatcher)
     }
 
     /// <summary>
-    /// Ends the connection. Mainly called when the client disconnects.
+    /// Initiates a graceful disconnect by completing the send pipe so the send loop drains
+    /// remaining data before issuing the TCP half-close.
     /// </summary>
     public void Disconnect()
     {
-        // close the socket associated with the client
         try
         {
-            if (_sendingList.Count <= 0)
+            if (_ioCancellation is null)
             {
-                Socket.Shutdown(SocketShutdown.Send);
+                // Pipelines not started; fall back to immediate half-close.
+                Socket?.Shutdown(SocketShutdown.Send);
                 return;
             }
 
-            _currentState = State.ReserveClosing;
+            // Completing the writer signals the send loop to drain then shut down.
+            _sendPipe.Writer.Complete();
         }
-        // throws if client process has already closed
         catch (Exception)
         {
             Close();
         }
     }
 
+    /// <returns><c>true</c> if the connection is active.</returns>
     public bool IsConnected() => _currentState == State.Connected;
 
+    /// <summary>
+    /// Called when the connection is established.
+    /// </summary>
     public void OnConnected()
     {
         _currentState = State.Connected;
@@ -212,50 +173,46 @@ public class UserToken(IMessageDispatcher dispatcher)
         _autoHeartbeat = true;
     }
 
-    public void OnMessage(Packet msg)
+    /// <summary>
+    /// Dispatches a fully assembled packet. Handles system protocol IDs and forwards application
+    /// packets to the registered <see cref="IPeer"/>.
+    /// </summary>
+    public void OnMessage(Packet message)
     {
-        // Logic for active close: check whether the server requested shutdown. If the shutdown
-        // signal is received, call Disconnect so the receiving side initiates close first.
-        switch (msg.ProtocolId)
+        switch (message.ProtocolId)
         {
             case SYS_CLOSE_REQ:
                 Disconnect();
                 return;
 
             case SYS_START_HEARTBEAT:
+                _ = message.PopProtocolId();
+                var interval = message.PopByte();
+                _heartbeatSender = new HeartbeatSender(this, interval);
+                if (_autoHeartbeat)
                 {
-                    // Parsing must happen in order, so discard the protocol ID.
-                    _ = msg.PopProtocolId();
-                    // Send interval.
-                    var interval = msg.PopByte();
-                    _heartbeatSender = new HeartbeatSender(this, interval);
-
-                    if (_autoHeartbeat)
-                    {
-                        StartHeartbeat();
-                    }
+                    StartHeartbeat();
                 }
 
                 return;
 
             case SYS_UPDATE_HEARTBEAT:
-                //Console.WriteLine("heartbeat : " + DateTime.Now);
                 LatestHeartbeatTime = DateTime.Now.Ticks;
                 return;
         }
 
-        if (_peer is not null)
+        if (Peer is not null)
         {
             try
             {
-                switch (msg.ProtocolId)
+                switch (message.ProtocolId)
                 {
                     case SYS_CLOSE_ACK:
-                        _peer.OnRemoved();
+                        Peer.OnRemoved();
                         break;
 
                     default:
-                        _peer.OnMessage(msg);
+                        Peer.OnMessage(message);
                         break;
                 }
             }
@@ -265,136 +222,85 @@ public class UserToken(IMessageDispatcher dispatcher)
             }
         }
 
-        if (msg.ProtocolId == SYS_CLOSE_ACK)
+        if (message.ProtocolId == SYS_CLOSE_ACK)
         {
-            if (OnSessionClosed is not null)
-            {
-                OnSessionClosed(this);
-            }
+            SessionClosed?.Invoke(this, new EventArgs<UserToken>(this));
         }
     }
 
     /// <summary>
-    /// Byte data could be interpreted directly in this method, but the MessageResolver class is
-    /// separated for extensibility so that implementing other resolvers later minimizes changes to
-    /// the UserToken class.
+    /// Sends a packet.
     /// </summary>
-    /// <param name="buffer"></param>
-    /// <param name="offset"></param>
-    /// <param name="transfered"></param>
-    public void OnReceive(byte[] buffer, int offset, int transfered) => _messageResolver.OnReceive(buffer, offset, transfered, OnMessageCompleted);
+    public void Send(Packet message)
+    {
+        message.RecordSize();
+        Send(new ArraySegment<byte>(message.Buffer ?? [], 0, message.Position));
+    }
 
     /// <summary>
-    /// Callback method invoked when asynchronous send completes.
+    /// Sends a segment of bytes.
     /// </summary>
-    /// <param name="e"></param>
-    public void ProcessSend(SocketAsyncEventArgs e)
+    public void Send(ArraySegment<byte> data)
     {
-        if (e.BytesTransferred <= 0 || e.SocketError != SocketError.Success)
+        try
         {
-            // Explicitly close the session on send failure to prevent a half-open state.
+            var flushTask = _sendPipe.Writer.WriteAsync(
+                new ReadOnlyMemory<byte>(data.Array, data.Offset, data.Count));
+
+            if (!flushTask.IsCompletedSuccessfully)
+            {
+                _ = flushTask.AsTask();
+            }
+        }
+        catch (Exception)
+        {
             Close();
+        }
+    }
+
+    /// <summary>
+    /// Starts the heartbeat sender.
+    /// </summary>
+    public void StartHeartbeat() => _heartbeatSender?.Play();
+
+    /// <summary>
+    /// Starts the pipelines asynchronously.
+    /// </summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    public void StartPipelinesAsync(CancellationToken cancellationToken = default)
+    {
+        if (_ioCancellation is not null)
+        {
             return;
         }
 
-        lock (_sendingQueueLock)
-        {
-            // Total number of bytes in the list.
-            var size = _sendingList.Sum(obj => obj.Count);
+        _ioCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var ioToken = _ioCancellation.Token;
 
-            // If another send was requested before completion, sending_list will contain more data.
-            if (e.BytesTransferred != size)
-            {
-                // TODO: Handle cases where a segment is only partially sent. For now, close it.
-                if (e.BytesTransferred < _sendingList[0].Count)
-                {
-                    var error = string.Format("Need to send more! transferred {0},  packet size {1}", e.BytesTransferred, size);
-                    Console.WriteLine(error);
-
-                    Close();
-                    return;
-                }
-
-                // Remove what was sent and send all remaining queued data in one shot.
-                var sent_index = 0;
-                var sum = 0;
-                for (var i = 0; i < _sendingList.Count; ++i)
-                {
-                    sum += _sendingList[i].Count;
-                    if (sum <= e.BytesTransferred)
-                    {
-                        // Up to this point are indexes of data already sent.
-                        sent_index = i;
-                        continue;
-                    }
-
-                    break;
-                }
-                // Remove sent items from the list.
-                _sendingList.RemoveRange(0, sent_index + 1);
-
-                // Send the remaining data in one shot.
-                StartSend();
-                return;
-            }
-
-            // Everything has been sent, and there is nothing else to send.
-            _sendingList.Clear();
-
-            // If closing was reserved, all sends are complete, so proceed with actual shutdown.
-            if (_currentState == State.ReserveClosing)
-            {
-                Socket.Shutdown(SocketShutdown.Send);
-            }
-        }
+        _receiveLoopTask = Task.Run(() => ReceiveLoopAsync(ioToken), ioToken);
+        _sendLoopTask = Task.Run(() => SendLoopAsync(ioToken), ioToken);
     }
 
     /// <summary>
-    /// Sends a packet. If the queue is empty, the data is added and SendAsync is called immediately.
-    /// If data already exists, only append the new data. Queued packets are sent when the current
-    /// SendAsync completes and the queue is checked for remaining data.
+    /// Stops the heartbeat.
     /// </summary>
-    /// <param name="msg"></param>
-    public void Send(ArraySegment<byte> data)
-    {
-        lock (_sendingQueueLock)
-        {
-            _sendingList.Add(data);
-
-            if (_sendingList.Count > 1)
-            {
-                // If the queue already has data, the previous send has not completed yet, so just
-                // enqueue and return. After the current SendAsync completes, the queue is checked,
-                // and SendAsync is called again if data remains.
-                return;
-            }
-        }
-
-        StartSend();
-    }
-
-    public void Send(Packet msg)
-    {
-        msg.RecordSize();
-        Send(new ArraySegment<byte>(msg.Buffer, 0, msg.Position));
-    }
-
-    public void SetEventArgs(SocketAsyncEventArgs receive_event_args, SocketAsyncEventArgs send_event_args)
-    {
-        ReceiveEventArgs = receive_event_args;
-        SendEventArgs = send_event_args;
-    }
-
-    public void SetPeer(IPeer peer) => _peer = peer;
-
-    public void StartHeartbeat() => _heartbeatSender?.Play();
-
     public void StopHeartbeat() => _heartbeatSender?.Stop();
 
+    /// <summary>
+    /// Updates the heartbeat manually.
+    /// </summary>
+    /// <param name="time">The time.</param>
     public void UpdateHeartbeatManually(float time) => _heartbeatSender?.Update(time);
 
     /// <summary>
-    /// Sends a close code so the remote side disconnects first.
+    /// Feeds raw bytes into the message resolver. Used by the receive loop and by unit tests to
+    /// simulate incoming data without a live socket.
+    /// </summary>
+    internal void OnReceive(byte[] buffer, int offset, int transferred) =>
+        _messageResolver.OnReceive(buffer, offset, transferred, OnMessageCompleted);
+
+    /// <summary>
+    /// Sends a SYS_CLOSE_REQ so the remote side closes first.
     /// </summary>
     private void ByeBye()
     {
@@ -404,51 +310,132 @@ public class UserToken(IMessageDispatcher dispatcher)
 
     private void OnMessageCompleted(ArraySegment<byte> buffer)
     {
-        if (_peer is null)
+        if (Peer is null)
         {
             return;
         }
 
         if (dispatcher is not null)
         {
-            // Ensure this is invoked through the logic thread queue.
             dispatcher.OnMessage(this, buffer);
         }
         else
         {
-            // Invoke directly on the IO thread.
             Packet msg = new(buffer, this);
             OnMessage(msg);
         }
     }
 
-    /// <summary>
-    /// Starts asynchronous send.
-    /// </summary>
-    private void StartSend()
+    private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
     {
+        if (Socket is null)
+        {
+            return;
+        }
+
+        var receiveBuffer = new byte[4096];
+
         try
         {
-            // Switched to using BufferList in SetBuffer for better performance.
-            SendEventArgs.BufferList = _sendingList;
-
-            // Start asynchronous send.
-            var pending = Socket.SendAsync(SendEventArgs);
-            if (!pending)
+            while (!cancellationToken.IsCancellationRequested && Socket is not null)
             {
-                ProcessSend(SendEventArgs);
+                int bytesReceived;
+                try
+                {
+                    bytesReceived = await Socket
+                        .ReceiveAsync(new Memory<byte>(receiveBuffer), SocketFlags.None, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (SocketException)
+                {
+                    Close();
+                    return;
+                }
+
+                if (bytesReceived == 0)
+                {
+                    Close();
+                    return;
+                }
+
+                OnReceive(receiveBuffer, 0, bytesReceived);
             }
         }
-        catch (Exception e)
+        finally
         {
-            if (Socket is null)
-            {
-                Close();
-                return;
-            }
+            Close();
+        }
+    }
 
-            Console.WriteLine("send error!! close socket. " + e.Message);
-            throw new Exception(e.Message, e);
+    private async Task SendLoopAsync(CancellationToken cancellationToken)
+    {
+        if (Socket is null)
+        {
+            return;
+        }
+
+        var reader = _sendPipe.Reader;
+
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested && Socket is not null)
+            {
+                ReadResult result;
+                try
+                {
+                    result = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                if (result.Buffer.Length > 0 && Socket is not null)
+                {
+                    foreach (var segment in result.Buffer)
+                    {
+                        if (Socket is null)
+                        {
+                            break;
+                        }
+
+                        try
+                        {
+                            _ = await Socket
+                                .SendAsync(segment, SocketFlags.None, cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            return;
+                        }
+                        catch (SocketException)
+                        {
+                            Close();
+                            return;
+                        }
+                    }
+                }
+
+                reader.AdvanceTo(result.Buffer.End);
+
+                if (result.IsCompleted)
+                {
+                    try { Socket?.Shutdown(SocketShutdown.Send); }
+                    catch (Exception) { }
+
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            await reader.CompleteAsync().ConfigureAwait(false);
+            Close();
         }
     }
 }

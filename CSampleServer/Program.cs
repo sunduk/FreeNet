@@ -7,8 +7,14 @@ using System.Collections.Concurrent;
 NetworkService service = new(false);
 
 // Set callback methods.
-service.SessionCreatedCallback += token =>
+service.SessionCreated += (_, e) =>
 {
+    var token = e.Value;
+    if (token is null)
+    {
+        return;
+    }
+
     short newid = 0;
     lock (UserIds)
     {
@@ -32,7 +38,6 @@ service.SessionCreatedCallback += token =>
 };
 
 // Initialize.
-service.Initialize(10000, 1024);
 service.Listen("0.0.0.0", 3369, 100);
 
 // Use this to disable heartbeat checks on the server. It is useful for stress tests with clients

@@ -8,8 +8,10 @@ public class PacketTests
     public void Close_ack_message_notifies_peer()
     {
         var peer = Substitute.For<IPeer>();
-        var token = new UserToken(null!);
-        token.SetPeer(peer);
+        var token = new UserToken(null!)
+        {
+            Peer = peer
+        };
 
         var closeAck = Packet.Create(-1);
         closeAck.RecordSize();

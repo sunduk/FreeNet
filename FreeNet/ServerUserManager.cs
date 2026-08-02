@@ -12,7 +12,7 @@ public class ServerUserManager
     private readonly Lock _user;
     private readonly List<UserToken> _users;
     private long _heartbeatDuration;
-    private Timer _timerHeartbeat;
+    private Timer? _timerHeartbeat;
 
     public ServerUserManager()
     {
@@ -58,9 +58,9 @@ public class ServerUserManager
         _timerHeartbeat = new Timer(CheckHeartbeat, null, 1000 * check_interval_sec, 1000 * check_interval_sec);
     }
 
-    public void StopHeartbeatChecking() => _timerHeartbeat.Dispose();
+    public void StopHeartbeatChecking() => _timerHeartbeat?.Dispose();
 
-    private void CheckHeartbeat(object state)
+    private void CheckHeartbeat(object? state)
     {
         var allowedTime = DateTime.Now.Ticks - _heartbeatDuration;
 

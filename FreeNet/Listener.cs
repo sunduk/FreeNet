@@ -16,7 +16,7 @@ internal class Listener
     /// <summary>
     /// The callback on new client
     /// </summary>
-    public event NewClientHandler? CallbackOnNewClient;
+    public event EventHandler<NewClientConnectedEventArgs>? NewClientConnected;
 
     /// <summary>
     /// The listen socket
@@ -29,20 +29,6 @@ internal class Listener
     private CancellationTokenSource? _stopAccepting;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Listener"/> class.
-    /// </summary>
-    public Listener()
-    {
-    }
-
-    /// <summary>
-    /// Callback invoked when a new client connection is accepted.
-    /// </summary>
-    /// <param name="client_socket">The client socket.</param>
-    /// <param name="token">The token.</param>
-    public delegate void NewClientHandler(Socket client_socket, object token);
-
-    /// <summary>
     /// Starts the specified host.
     /// </summary>
     /// <param name="host">The host.</param>
@@ -50,14 +36,9 @@ internal class Listener
     /// <param name="backlog">The backlog.</param>
     public void Start(string host, int port, int backlog)
     {
-        _listenSocket = new Socket(
-            AddressFamily.InterNetwork,
-            SocketType.Stream,
-            ProtocolType.Tcp);
-
+        _listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         var address = host == "0.0.0.0" ? IPAddress.Any : IPAddress.Parse(host);
         IPEndPoint endpoint = new(address, port);
-
         try
         {
             _listenSocket.Bind(endpoint);
@@ -98,7 +79,7 @@ internal class Listener
             {
                 var clientSocket = await _listenSocket.AcceptAsync(cancellationToken).ConfigureAwait(false);
                 clientSocket.NoDelay = true;
-                CallbackOnNewClient?.Invoke(clientSocket, null);
+                NewClientConnected?.Invoke(this, new NewClientConnectedEventArgs(clientSocket, null));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -113,25 +94,5 @@ internal class Listener
                 Console.WriteLine($"Failed to accept client. {ex.SocketErrorCode}");
             }
         }
-    }
-
-    /// <summary>
-    /// Compatibility callback for tests and legacy code paths.
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e">The EventArgs used when calling AcceptAsync.</param>
-    private void OnAcceptCompleted(object sender, SocketAsyncEventArgs e)
-    {
-        if (e.SocketError == SocketError.Success)
-        {
-            if (e.AcceptSocket is not null)
-            {
-                e.AcceptSocket.NoDelay = true;
-                CallbackOnNewClient?.Invoke(e.AcceptSocket, e.UserToken);
-            }
-            return;
-        }
-
-        Console.WriteLine($"Failed to accept client. {e.SocketError}");
     }
 }

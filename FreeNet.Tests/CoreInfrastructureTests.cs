@@ -1,5 +1,3 @@
-using System.Net.Sockets;
-
 namespace FreeNet.Tests;
 
 public class CoreInfrastructureTests
@@ -106,82 +104,7 @@ public class CoreInfrastructureTests
     }
 
     [Test]
-    public async Task SocketAsyncEventArgsPool_push_pop_and_count_work_as_expected()
-    {
-        var pool = new SocketAsyncEventArgsPool(2);
-        var first = new SocketAsyncEventArgs();
-        var second = new SocketAsyncEventArgs();
-
-        pool.Push(first);
-        pool.Push(second);
-        _ = await Assert.That(pool.Count).IsEqualTo(2);
-
-        var popped = pool.Pop();
-        _ = await Assert.That(pool.Count).IsEqualTo(1);
-        _ = await Assert.That(ReferenceEquals(popped, second)).IsTrue();
-    }
-
-    [Test]
-    public async Task SocketAsyncEventArgsPool_rejects_duplicate_instances()
-    {
-        var pool = new SocketAsyncEventArgsPool(1);
-        var item = new SocketAsyncEventArgs();
-        pool.Push(item);
-
-        var duplicateRejected = false;
-        try
-        {
-            pool.Push(item);
-        }
-        catch (Exception)
-        {
-            duplicateRejected = true;
-        }
-
-        _ = await Assert.That(duplicateRejected).IsTrue();
-    }
-
-    [Test]
-    public async Task SocketAsyncEventArgsPool_rejects_null_instance()
-    {
-        var pool = new SocketAsyncEventArgsPool(1);
-
-        var nullRejected = false;
-        try
-        {
-            pool.Push(null!);
-        }
-        catch (ArgumentNullException)
-        {
-            nullRejected = true;
-        }
-
-        _ = await Assert.That(nullRejected).IsTrue();
-    }
-
-    [Test]
-    public async Task BufferManager_allocates_reuses_and_reports_exhaustion()
-    {
-        var manager = new BufferManager(totalBytes: 8, bufferSize: 4);
-        manager.InitBuffer();
-
-        var a = new SocketAsyncEventArgs();
-        var b = new SocketAsyncEventArgs();
-        var c = new SocketAsyncEventArgs();
-
-        _ = await Assert.That(manager.SetBuffer(a)).IsTrue();
-        _ = await Assert.That(manager.SetBuffer(b)).IsTrue();
-        _ = await Assert.That(manager.SetBuffer(c)).IsFalse();
-
-        var previousOffset = a.Offset;
-        manager.FreeBuffer(a);
-
-        _ = await Assert.That(manager.SetBuffer(c)).IsTrue();
-        _ = await Assert.That(c.Offset).IsEqualTo(previousOffset);
-    }
-
-    [Test]
-    public async Task PacketBufferManager_reuses_pushed_packet()
+    public async Task PacketBufferManager_reuses_pushed_packet_and_reallocates_when_empty()
     {
         PacketBufferManager.Initialize(1);
         var first = PacketBufferManager.Pop();
@@ -189,19 +112,12 @@ public class CoreInfrastructureTests
         var second = PacketBufferManager.Pop();
 
         _ = await Assert.That(ReferenceEquals(first, second)).IsTrue();
-    }
 
-    [Test]
-    public async Task PacketBufferManager_reallocates_when_pool_is_empty()
-    {
-        PacketBufferManager.Initialize(1);
+        // Pool is now empty; next pop must allocate a new instance.
+        var third = PacketBufferManager.Pop();
 
-        var first = PacketBufferManager.Pop();
-        var second = PacketBufferManager.Pop();
-
-        _ = await Assert.That(first).IsNotNull();
-        _ = await Assert.That(second).IsNotNull();
-        _ = await Assert.That(ReferenceEquals(first, second)).IsFalse();
+        _ = await Assert.That(third).IsNotNull();
+        _ = await Assert.That(ReferenceEquals(first, third)).IsFalse();
     }
 
     private static byte[] CreatePacketBytes(short protocol, Action<Packet> writeBody)

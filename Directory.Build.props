@@ -1,9 +1,9 @@
 <Project>
   <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-  </PropertyGroup>
+    <Nullable>enable</Nullable>
 
-  <PropertyGroup>
     <!-- Semantic version base -->
     <VersionPrefix>0.1.2</VersionPrefix>
     <BuildTimestampUtc>$([System.DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))</BuildTimestampUtc>

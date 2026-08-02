@@ -23,8 +23,9 @@ foreach (var address in addresses)
 List<IPeer> gameServers = [];
 
 // Register the callback method that will be invoked when the connection succeeds.
-connector.ConnectedCallback += serverToken =>
+connector.Connected += (_, e) =>
 {
+    var serverToken = e.Token;
     lock (gameServers)
     {
         IPeer server = new RemoteServerPeer(serverToken);

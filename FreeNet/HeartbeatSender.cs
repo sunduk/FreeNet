@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace FreeNet;
+﻿namespace FreeNet;
 
 internal class HeartbeatSender
 {
@@ -40,7 +38,7 @@ internal class HeartbeatSender
         Send();
     }
 
-    private void OnTimer(object state) => Send();
+    private void OnTimer(object? state) => Send();
 
     private void Send()
     {

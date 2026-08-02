@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace FreeNet;
 
@@ -13,10 +12,10 @@ public class Packet
     /// </summary>
     /// <param name="buffer">The buffer.</param>
     /// <param name="owner">The owner.</param>
-    public Packet(ArraySegment<byte> buffer, UserToken owner)
+    public Packet(ArraySegment<byte> buffer, UserToken? owner)
     {
         // Operates on buffer references only. Implement copying separately if needed.
-        Buffer = buffer.Array;
+        Buffer = buffer.Array ?? [];
 
         // Skip the header and start after it.
         Position = Defines.HEADERSIZE;
@@ -34,7 +33,7 @@ public class Packet
     /// </summary>
     /// <param name="buffer">The buffer.</param>
     /// <param name="owner">The owner.</param>
-    public Packet(byte[] buffer, UserToken owner)
+    public Packet(byte[] buffer, UserToken? owner)
     {
         // Operates on buffer references only. Implement copying separately if needed.
         Buffer = buffer;
@@ -54,13 +53,13 @@ public class Packet
     /// Gets the buffer.
     /// </summary>
     /// <value>The buffer.</value>
-    public byte[] Buffer { get; private set; }
+    public byte[] Buffer { get; private set; } = [];
 
     /// <summary>
     /// Gets the owner.
     /// </summary>
     /// <value>The owner.</value>
-    public UserToken Owner { get; private set; }
+    public UserToken? Owner { get; private set; }
 
     /// <summary>
     /// Gets the position.
@@ -112,7 +111,7 @@ public class Packet
     public void CopyTo(Packet target)
     {
         target.SetProtocol(ProtocolId);
-        target.Overwrite(Buffer, Position);
+        target.Overwrite(Buffer!, Position);
     }
 
     /// <summary>
@@ -122,7 +121,7 @@ public class Packet
     /// <param name="position">The position.</param>
     public void Overwrite(byte[] source, int position)
     {
-        Array.Copy(source, Buffer, source.Length);
+        Array.Copy(source, Buffer!, source.Length);
         Position = position;
     }
 
@@ -132,7 +131,7 @@ public class Packet
     /// <returns>System.Byte.</returns>
     public byte PopByte()
     {
-        var data = Buffer[Position];
+        var data = Buffer![Position];
         Position += sizeof(byte);
         return data;
     }
@@ -143,7 +142,7 @@ public class Packet
     /// <returns>System.Single.</returns>
     public float PopFloat()
     {
-        var data = BitConverter.ToSingle(Buffer, Position);
+        var data = BitConverter.ToSingle(Buffer!, Position);
         Position += sizeof(float);
         return data;
     }
@@ -154,7 +153,7 @@ public class Packet
     /// <returns>System.Int16.</returns>
     public short PopInt16()
     {
-        var data = BitConverter.ToInt16(Buffer, Position);
+        var data = BitConverter.ToInt16(Buffer!, Position);
         Position += sizeof(short);
         return data;
     }
@@ -165,7 +164,7 @@ public class Packet
     /// <returns>System.Int32.</returns>
     public int PopInt32()
     {
-        var data = BitConverter.ToInt32(Buffer, Position);
+        var data = BitConverter.ToInt32(Buffer!, Position);
         Position += sizeof(int);
         return data;
     }
@@ -183,11 +182,11 @@ public class Packet
     public string PopString()
     {
         // String length is stored in 2 bytes. Range: 0 ~ 32767.
-        var len = BitConverter.ToInt16(Buffer, Position);
+        var len = BitConverter.ToInt16(Buffer!, Position);
         Position += sizeof(short);
 
         // Standardize encoding as UTF-8.
-        var data = Encoding.UTF8.GetString(Buffer, Position, len);
+        var data = Encoding.UTF8.GetString(Buffer!, Position, len);
         Position += len;
 
         return data;
@@ -199,7 +198,7 @@ public class Packet
     /// <param name="data">The data.</param>
     public void Push(byte data)
     {
-        Buffer[Position] = data;
+        Buffer![Position] = data;
         Position += sizeof(byte);
     }
 
@@ -210,7 +209,7 @@ public class Packet
     public void Push(short data)
     {
         var temp_buffer = BitConverter.GetBytes(data);
-        temp_buffer.CopyTo(Buffer, Position);
+        temp_buffer.CopyTo(Buffer!, Position);
         Position += temp_buffer.Length;
     }
 
@@ -221,7 +220,7 @@ public class Packet
     public void Push(int data)
     {
         var temp_buffer = BitConverter.GetBytes(data);
-        temp_buffer.CopyTo(Buffer, Position);
+        temp_buffer.CopyTo(Buffer!, Position);
         Position += temp_buffer.Length;
     }
 
@@ -235,10 +234,10 @@ public class Packet
 
         var len = (short)temp_buffer.Length;
         var len_buffer = BitConverter.GetBytes(len);
-        len_buffer.CopyTo(Buffer, Position);
+        len_buffer.CopyTo(Buffer!, Position);
         Position += sizeof(short);
 
-        temp_buffer.CopyTo(Buffer, Position);
+        temp_buffer.CopyTo(Buffer!, Position);
         Position += temp_buffer.Length;
     }
 
@@ -249,7 +248,7 @@ public class Packet
     public void Push(float data)
     {
         var temp_buffer = BitConverter.GetBytes(data);
-        temp_buffer.CopyTo(Buffer, Position);
+        temp_buffer.CopyTo(Buffer!, Position);
         Position += temp_buffer.Length;
     }
 
@@ -260,7 +259,7 @@ public class Packet
     public void PushInt16(short data)
     {
         var temp_buffer = BitConverter.GetBytes(data);
-        temp_buffer.CopyTo(Buffer, Position);
+        temp_buffer.CopyTo(Buffer!, Position);
         Position += temp_buffer.Length;
     }
 
@@ -271,7 +270,7 @@ public class Packet
     {
         // Write the combined size of header + body.
         var header = BitConverter.GetBytes(Position);
-        header.CopyTo(Buffer, 0);
+        header.CopyTo(Buffer!, 0);
     }
 
     /// <summary>

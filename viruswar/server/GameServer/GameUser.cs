@@ -10,12 +10,12 @@ public class GameUser : IPeer
 {
     private readonly UserToken _token;
     private readonly Dictionary<UserStateType, IUserState> _userStates;
-    private IUserState _currentUserState;
+    private IUserState? _currentUserState;
 
     public GameUser(UserToken token)
     {
         _token = token;
-        _token.SetPeer(this);
+        _token.Peer = this;
 
         _userStates = new Dictionary<UserStateType, IUserState>
         {
@@ -25,9 +25,9 @@ public class GameUser : IPeer
         ChangeState(UserStateType.Lobby);
     }
 
-    public GameRoom BattleRoom { get; private set; }
+    public GameRoom? BattleRoom { get; private set; }
 
-    public Player Player { get; private set; }
+    public Player? Player { get; private set; }
 
     public void ChangeState(UserStateType state) => _currentUserState = _userStates[state];
 
@@ -56,7 +56,7 @@ public class GameUser : IPeer
                 return;
         }
 
-        _currentUserState.OnMessage(msg);
+        _currentUserState?.OnMessage(msg);
     }
 
     /// <inheritdoc/>

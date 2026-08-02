@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using System.Reflection;
 using NSubstitute;
 
@@ -28,8 +27,10 @@ public class ServiceLifecycleTests
     {
         var manager = new ServerUserManager();
         var token = new UserToken(null!);
-        token.SetEventArgs(new SocketAsyncEventArgs(), new SocketAsyncEventArgs());
-        token.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        token.Socket = new System.Net.Sockets.Socket(
+            System.Net.Sockets.AddressFamily.InterNetwork,
+            System.Net.Sockets.SocketType.Stream,
+            System.Net.Sockets.ProtocolType.Tcp);
 
         SetProperty(token, nameof(UserToken.LatestHeartbeatTime), 0L);
 
@@ -52,8 +53,8 @@ public class ServiceLifecycleTests
         var inListPeer = Substitute.For<IPeer>();
         var skippedPeer = Substitute.For<IPeer>();
 
-        inListToken.SetPeer(inListPeer);
-        skippedToken.SetPeer(skippedPeer);
+        inListToken.Peer=inListPeer;
+        skippedToken.Peer=skippedPeer;
         service.Usermanager.Add(inListToken);
 
         var firstBytes = CreateMessageBytes(100);
@@ -72,56 +73,16 @@ public class ServiceLifecycleTests
     }
 
     [Test]
-    public async Task NetworkService_onreceivecompleted_throws_for_non_receive_operation()
+    public async Task NetworkService_onsessionclosed_removes_user()
     {
         var service = new NetworkService();
-        var args = new SocketAsyncEventArgs();
-
-        var threw = false;
-        try
-        {
-            InvokeInstance(service, "OnReceiveCompleted", [this, args]);
-        }
-        catch (TargetInvocationException ex) when (ex.InnerException is ArgumentException)
-        {
-            threw = true;
-        }
-
-        _ = await Assert.That(threw).IsTrue();
-    }
-
-    [Test]
-    public async Task NetworkService_onsessionclosed_removes_user_and_recycles_event_args()
-    {
-        var service = new NetworkService();
-        service.Initialize(2, 128);
 
         var token = new UserToken(null!);
-        token.SetEventArgs(new SocketAsyncEventArgs(), new SocketAsyncEventArgs());
         service.Usermanager.Add(token);
 
-        InvokeInstance(service, "OnSessionClosed", [token]);
+        InvokeInstance(service, "OnSessionClosed", [null, new EventArgs<UserToken>(token)]);
 
         _ = await Assert.That(service.Usermanager.Exists(token)).IsFalse();
-        _ = await Assert.That(token.ReceiveEventArgs is null).IsTrue();
-        _ = await Assert.That(token.SendEventArgs is null).IsTrue();
-    }
-
-    [Test]
-    public async Task Listener_accept_callback_is_forwarded_to_registered_handler()
-    {
-        var listener = new Listener();
-        var accepted = false;
-        listener.CallbackOnNewClient += (socket, _) => accepted = socket is not null;
-
-        var acceptArgs = new SocketAsyncEventArgs
-        {
-            AcceptSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-        };
-
-        InvokeInstance(listener, "OnAcceptCompleted", [null!, acceptArgs]);
-
-        _ = await Assert.That(accepted).IsTrue();
     }
 
     [Test]

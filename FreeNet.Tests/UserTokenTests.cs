@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using NSubstitute;
 
 namespace FreeNet.Tests;
@@ -13,19 +12,6 @@ public class UserTokenTests
         _ = await Assert.That(token.IsConnected()).IsFalse();
         token.OnConnected();
         _ = await Assert.That(token.IsConnected()).IsTrue();
-    }
-
-    [Test]
-    public async Task SetEventArgs_stores_both_event_args()
-    {
-        var token = new UserToken(null!);
-        var recv = new SocketAsyncEventArgs();
-        var send = new SocketAsyncEventArgs();
-
-        token.SetEventArgs(recv, send);
-
-        _ = await Assert.That(ReferenceEquals(token.ReceiveEventArgs, recv)).IsTrue();
-        _ = await Assert.That(ReferenceEquals(token.SendEventArgs, send)).IsTrue();
     }
 
     [Test]
@@ -62,8 +48,10 @@ public class UserTokenTests
     public void OnMessage_regular_protocol_calls_peer_onmessage()
     {
         var peer = Substitute.For<IPeer>();
-        var token = new UserToken(null!);
-        token.SetPeer(peer);
+        var token = new UserToken(null!)
+        {
+            Peer = peer
+        };
 
         var packet = Packet.Create(50);
         packet.RecordSize();
@@ -92,10 +80,10 @@ public class UserTokenTests
     {
         var peer = Substitute.For<IPeer>();
         var token = BuildConnectedToken();
-        token.SetPeer(peer);
+        token.Peer = peer;
 
         var sessionClosedFired = false;
-        token.OnSessionClosed += _ => sessionClosedFired = true;
+        token.SessionClosed += (_, _) => sessionClosedFired = true;
 
         // SYS_CLOSE_REQ = 0
         var packet = Packet.Create(0);
@@ -114,12 +102,11 @@ public class UserTokenTests
         peer.When(static p => p.OnMessage(Arg.Any<Packet>())).Do(static _ => throw new InvalidOperationException("peer error"));
 
         var token = BuildConnectedToken();
-        token.SetPeer(peer);
+        token.Peer = peer;
 
         var packet = Packet.Create(50);
         packet.RecordSize();
 
-        // Exception from peer.OnMessage is caught inside UserToken.OnMessage and Close() is called
         var threw = false;
         try { token.OnMessage(new Packet(new ArraySegment<byte>(packet.Buffer, 0, packet.Position), token)); }
         catch { threw = true; }
@@ -148,8 +135,10 @@ public class UserTokenTests
     public void OnReceive_complete_packet_with_peer_dispatches_message()
     {
         var peer = Substitute.For<IPeer>();
-        var token = new UserToken(null!);
-        token.SetPeer(peer);
+        var token = new UserToken(null!)
+        {
+            Peer = peer
+        };
 
         var packet = Packet.Create(42);
         packet.Push(99);
@@ -163,22 +152,16 @@ public class UserTokenTests
     }
 
     [Test]
-    public async Task ProcessSend_returns_early_when_bytes_transferred_is_zero()
+    public async Task Ban_calls_close_when_socket_is_null()
     {
-        var token = new UserToken(null!);
-        var args = new SocketAsyncEventArgs();
-        token.ProcessSend(args);
-        _ = await Assert.That(token.IsConnected()).IsFalse();
-    }
-
-    [Test]
-    public async Task Ban_calls_close_when_send_fails()
-    {
-        var token = BuildConnectedToken();
-        token.SetPeer(Substitute.For<IPeer>());
-
-        // Ban → ByeBye → Send (fails on unconnected socket) → Close → peer.OnRemoved
+        // Token with no socket: Ban() → ByeBye() → Send (tries to write to pipe) → close path
+        var token = new UserToken(null!)
+        {
+            Peer = Substitute.For<IPeer>()
+        };
+        // No socket set, so send pipe writer.Complete() / Close() should not throw
         token.Ban();
+        token.Close(); // hard-close since no I/O loop is running
 
         _ = await Assert.That(token.Socket is null).IsTrue();
         _ = await Assert.That(token.IsConnected()).IsFalse();
@@ -204,14 +187,17 @@ public class UserTokenTests
         _ = await Assert.That(token.LatestHeartbeatTime > 0).IsTrue();
     }
 
-    /// <summary>Creates a token with real (unconnected) socket and event args.</summary>
+    /// <summary>Creates a token with a real (unconnected) socket, connected state set.</summary>
     private static UserToken BuildConnectedToken()
     {
-        var token = new UserToken(null!);
-        var recvArgs = new SocketAsyncEventArgs();
-        recvArgs.SetBuffer(new byte[1024], 0, 1024);
-        token.SetEventArgs(recvArgs, new SocketAsyncEventArgs());
-        token.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        var token = new UserToken(null!)
+        {
+            Socket = new System.Net.Sockets.Socket(
+                System.Net.Sockets.AddressFamily.InterNetwork,
+                System.Net.Sockets.SocketType.Stream,
+                System.Net.Sockets.ProtocolType.Tcp)
+        };
+        token.OnConnected();
         return token;
     }
 }

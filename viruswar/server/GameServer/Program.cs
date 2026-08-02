@@ -3,9 +3,8 @@ using GameServer;
 
 var service = new NetworkService(true);
 // Set callback methods.
-service.SessionCreatedCallback += OnSessionCreated;
+service.SessionCreated += OnSessionCreated;
 // Initialize.
-service.Initialize(10000, 1024);
 service.Listen("0.0.0.0", 20000, 100);
 
 Console.WriteLine("Started!");
@@ -22,8 +21,14 @@ internal partial class Program
 
     public static int GetConcurrentUserCount() => Userlist.Count;
 
-    public static void OnSessionCreated(UserToken token)
+    public static void OnSessionCreated(object? sender, EventArgs<UserToken> e)
     {
+        var token = e.Value;
+        if (token is null)
+        {
+            return;
+        }
+
         var user = new GameUser(token);
         lock (Userlist)
         {

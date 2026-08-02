@@ -14,7 +14,7 @@ internal class GameUser : IPeer
     {
         _token = token;
         Sig = sig;
-        _token.SetPeer(this);
+        _token.Peer = this;
     }
 
     public short Sig { get; private set; }
