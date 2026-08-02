@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsTestProject>true</IsTestProject>
+    <TUnitReflectionScanner>true</TUnitReflectionScanner>
   </PropertyGroup>
 
   <ItemGroup>
