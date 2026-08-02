@@ -84,7 +84,7 @@ internal partial class Program
             {
                 if (ret == 0)
                 {
-                    var msg = new SCUserInfo
+                    var msg = new UserInfo
                     {
                         UserID = user.Sig
                     };

@@ -3,17 +3,16 @@
 namespace Protocol;
 
 /// <summary>
-/// Represents user information.
-/// Implements the <see cref="Protocol.AProtocolMessage{Protocol.SCUserInfo}" />
+/// Represents user information. Implements the <see cref="ProtocolMessage{UserInfo}"/>
 /// </summary>
-/// <seealso cref="Protocol.AProtocolMessage{Protocol.SCUserInfo}" />
-public class SCUserInfo : AProtocolMessage<SCUserInfo>
+/// <seealso cref="ProtocolMessage{UserInfo}"/>
+public class UserInfo : ProtocolMessage<UserInfo>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SCUserInfo"/> class.
+    /// Initializes a new instance of the <see cref="UserInfo"/> class.
     /// </summary>
     /// <param name="message">The message.</param>
-    public SCUserInfo(Packet? message = null)
+    public UserInfo(Packet? message = null)
         : base(PacketProtocol.USER_INFO)
     {
         if (message is not null)
@@ -29,7 +28,7 @@ public class SCUserInfo : AProtocolMessage<SCUserInfo>
     public short UserID { get; set; }
 
     /// <inheritdoc/>
-    public override SCUserInfo FromPacket(Packet msg)
+    public override UserInfo FromPacket(Packet msg)
     {
         UserID = msg.PopInt16();
         return this;

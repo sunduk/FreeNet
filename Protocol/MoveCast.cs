@@ -2,13 +2,18 @@
 
 namespace Protocol;
 
-public class SCMoveCast : AProtocolMessage<SCMoveCast>
+/// <summary>
+/// Represents a cast movement request in a networked application, containing user ID, position, and rotation data.
+/// Implements the <see cref="ProtocolMessage{MoveCast}"/>.
+/// </summary>
+/// <seealso cref="ProtocolMessage{MoveCast}"/>
+public class MoveCast : ProtocolMessage<MoveCast>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SCMoveCast"/> class.
+    /// Initializes a new instance of the <see cref="MoveCast"/> class.
     /// </summary>
     /// <param name="message">The message.</param>
-    public SCMoveCast(Packet? message = null)
+    public MoveCast(Packet? message = null)
         : base(PacketProtocol.MOVE_CAST)
     {
         if (message is not null)
@@ -48,7 +53,7 @@ public class SCMoveCast : AProtocolMessage<SCMoveCast>
     public float Z { get; set; }
 
     /// <inheritdoc/>
-    public override SCMoveCast FromPacket(Packet msg)
+    public override MoveCast FromPacket(Packet msg)
     {
         UserID = msg.PopInt16();
         X = msg.PopFloat();

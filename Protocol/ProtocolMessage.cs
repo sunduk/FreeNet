@@ -7,7 +7,7 @@ namespace Protocol;
 /// </summary>
 /// <typeparam name="T">The type of the protocol message that inherits from this base class.</typeparam>
 /// <param name="protocol">The protocol.</param>
-public abstract class AProtocolMessage<T>(PacketProtocol protocol) where T : AProtocolMessage<T>
+public abstract class ProtocolMessage<T>(PacketProtocol protocol) where T : ProtocolMessage<T>
 {
     /// <summary>
     /// Gets the packet protocol.

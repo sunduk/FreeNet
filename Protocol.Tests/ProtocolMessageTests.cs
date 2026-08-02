@@ -37,7 +37,7 @@ public class ProtocolMessageTests
     [Test]
     public async Task CSMoveReq_round_trip_preserves_payload()
     {
-        var outbound = new CSMoveReq
+        var outbound = new MoveRequest
         {
             X = 1.25f,
             Y = -2.5f,
@@ -45,7 +45,7 @@ public class ProtocolMessageTests
             Rotation = 270.0f,
         };
 
-        var inbound = new CSMoveReq(ToInboundPacket(outbound.ToPacket()));
+        var inbound = new MoveRequest(ToInboundPacket(outbound.ToPacket()));
 
         _ = await Assert.That(inbound.X).IsEqualTo(outbound.X);
         _ = await Assert.That(inbound.Y).IsEqualTo(outbound.Y);
@@ -56,7 +56,7 @@ public class ProtocolMessageTests
     [Test]
     public async Task SCMoveCast_round_trip_preserves_payload()
     {
-        var outbound = new SCMoveCast
+        var outbound = new MoveCast
         {
             UserID = 27,
             X = 0.5f,
@@ -65,7 +65,7 @@ public class ProtocolMessageTests
             Rotation = 45.0f,
         };
 
-        var inbound = new SCMoveCast(ToInboundPacket(outbound.ToPacket()));
+        var inbound = new MoveCast(ToInboundPacket(outbound.ToPacket()));
 
         _ = await Assert.That(inbound.UserID).IsEqualTo(outbound.UserID);
         _ = await Assert.That(inbound.X).IsEqualTo(outbound.X);
@@ -77,12 +77,12 @@ public class ProtocolMessageTests
     [Test]
     public async Task SCUserInfo_round_trip_preserves_payload()
     {
-        var outbound = new SCUserInfo
+        var outbound = new UserInfo
         {
             UserID = 123,
         };
 
-        var inbound = new SCUserInfo(ToInboundPacket(outbound.ToPacket()));
+        var inbound = new UserInfo(ToInboundPacket(outbound.ToPacket()));
 
         _ = await Assert.That(inbound.UserID).IsEqualTo(outbound.UserID);
     }

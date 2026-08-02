@@ -49,7 +49,7 @@ internal class RemoteServerPeer : IPeer
                 break;
             case PacketProtocol.MOVE_CAST:
                 {
-                    var ret = new SCMoveCast(msg);
+                    var ret = new MoveCast(msg);
                     Console.WriteLine(ret.ToString());
                     //short userid = msg.PopInt16();
                     //float x = msg.PopFloat();

@@ -59,8 +59,8 @@ internal class GameUser : IPeer
 
     private void ProcMove(Packet msg)
     {
-        var moveReq = new CSMoveReq(msg);
-        var ret = new SCMoveCast
+        var moveReq = new MoveRequest(msg);
+        var ret = new MoveCast
         {
             UserID = Sig,
             X = moveReq.X,
