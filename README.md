@@ -31,7 +31,6 @@ FreeNet is a lightweight asynchronous C# network library.
 * **v0.2.0** - System.IO.Pipelines modernization
   * Added modern async I/O via `UserToken.cs` for improved performance and resource efficiency
   * Added `StartPipelinesAsync(CancellationToken)` and pipeline-backed `Send(...)` processing
-  * Backward compatible; existing SAEA-based code remains functional and unchanged
   * See [PIPELINES_MODERNIZATION.md](documents/PIPELINES_MODERNIZATION.md) for migration details
   * Released with MIT License
 

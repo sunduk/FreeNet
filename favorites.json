@@ -4,6 +4,10 @@
     {
       "name": ".editorconfig",
       "path": ".editorconfig"
+    },
+    {
+      "name": "README.md",
+      "path": "README.md"
     }
   ]
 }
