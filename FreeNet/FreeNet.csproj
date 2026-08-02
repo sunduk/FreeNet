@@ -4,4 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="FreeNet.Tests" />
+  </ItemGroup>
+
 </Project>
