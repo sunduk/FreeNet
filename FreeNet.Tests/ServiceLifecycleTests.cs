@@ -80,7 +80,7 @@ public class ServiceLifecycleTests
         var token = new UserToken(null!);
         service.Usermanager.Add(token);
 
-        InvokeInstance(service, "OnSessionClosed", [null, new EventArgs<UserToken>(token)]);
+        InvokeInstance(service, "OnSessionClosed", [null, new SessionEventArgs(token)]);
 
         _ = await Assert.That(service.Usermanager.Exists(token)).IsFalse();
     }

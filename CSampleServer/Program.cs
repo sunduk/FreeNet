@@ -9,11 +9,7 @@ NetworkService service = new(false);
 // Set callback methods.
 service.SessionCreated += (_, e) =>
 {
-    var token = e.Value;
-    if (token is null)
-    {
-        return;
-    }
+    var token = e.Token;
 
     short newid = 0;
     lock (UserIds)
@@ -50,7 +46,7 @@ while (true)
 {
     //Console.Write(".");
     var input = Console.ReadLine();
-    if (input.Equals("users"))
+    if (input?.Equals("users", StringComparison.Ordinal) == true)
     {
         Console.WriteLine(service.Usermanager.GetTotalCount());
     }

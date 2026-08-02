@@ -11,7 +11,7 @@ public class ProgramAndServerImplTests
     {
         var token = new UserToken(null!);
 
-        Program.OnSessionCreated(null, new EventArgs<UserToken>(token));
+        Program.OnSessionCreated(null, new SessionEventArgs(token));
         var user = GetLatestUser();
 
         _ = await Assert.That(Program.GetConcurrentUserCount() > 0).IsTrue();

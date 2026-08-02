@@ -3,12 +3,6 @@
 namespace FreeNet;
 
 /// <summary>
-/// Defines a callback delegate for completed message processing.
-/// </summary>
-/// <param name="buffer">The buffer.</param>
-public delegate void CompletedMessageCallback(ArraySegment<byte> buffer);
-
-/// <summary>
 /// Parses data with a [header][body] structure.
 /// - header: total message size, using the type size defined by Defines.HEADERSIZE (Int16 for 2 bytes, Int32 for 4 bytes).
 /// - body: message payload.
@@ -72,7 +66,7 @@ internal class MessageResolver
     /// <param name="offset">Start position for reading from the buffer.</param>
     /// <param name="transffered">Size of received data.</param>
     /// <param name="callback">Callback invoked when a packet is fully assembled.</param>
-    public void OnReceive(byte[] buffer, int offset, int transffered, CompletedMessageCallback callback)
+    public void OnReceive(byte[] buffer, int offset, int transffered, Action<ArraySegment<byte>> callback)
     {
         // Bytes to read from this receive.
         _remainBytes = transffered;

@@ -45,7 +45,7 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
     /// <summary>
     /// Session closed event. Callback method invoked when the session ends.
     /// </summary>
-    public event EventHandler<EventArgs<UserToken>>? SessionClosed;
+    public event EventHandler<SessionEventArgs>? SessionClosed;
 
     /// <summary>
     /// Gets the latest heartbeat time.
@@ -63,8 +63,8 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
     public Socket? Socket { get; set; }
 
     /// <summary>
-    /// Ends the connection by sending a close code and letting the remote side disconnect first.
-    /// Prefer this over <see cref="Close"/> on the server side to avoid leaving TIME_WAIT.
+    /// Ends the connection by sending a close code and letting the remote side disconnect first. Prefer this over
+    /// <see cref="Close"/> on the server side to avoid leaving TIME_WAIT.
     /// </summary>
     public void Ban()
     {
@@ -126,7 +126,7 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
         else
         {
             // No peer registered, but still notify session-level listeners (e.g. NetworkService).
-            SessionClosed?.Invoke(this, new EventArgs<UserToken>(this));
+            SessionClosed?.Invoke(this, new SessionEventArgs(this));
         }
     }
 
@@ -137,8 +137,8 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
     }
 
     /// <summary>
-    /// Initiates a graceful disconnect by completing the send pipe so the send loop drains
-    /// remaining data before issuing the TCP half-close.
+    /// Initiates a graceful disconnect by completing the send pipe so the send loop drains remaining data before
+    /// issuing the TCP half-close.
     /// </summary>
     public void Disconnect()
     {
@@ -174,8 +174,8 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
     }
 
     /// <summary>
-    /// Dispatches a fully assembled packet. Handles system protocol IDs and forwards application
-    /// packets to the registered <see cref="IPeer"/>.
+    /// Dispatches a fully assembled packet. Handles system protocol IDs and forwards application packets to the
+    /// registered <see cref="IPeer"/>.
     /// </summary>
     public void OnMessage(Packet message)
     {
@@ -224,7 +224,7 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
 
         if (message.ProtocolId == SYS_CLOSE_ACK)
         {
-            SessionClosed?.Invoke(this, new EventArgs<UserToken>(this));
+            SessionClosed?.Invoke(this, new SessionEventArgs(this));
         }
     }
 
@@ -293,8 +293,8 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
     public void UpdateHeartbeatManually(float time) => _heartbeatSender?.Update(time);
 
     /// <summary>
-    /// Feeds raw bytes into the message resolver. Used by the receive loop and by unit tests to
-    /// simulate incoming data without a live socket.
+    /// Feeds raw bytes into the message resolver. Used by the receive loop and by unit tests to simulate incoming data
+    /// without a live socket.
     /// </summary>
     internal void OnReceive(byte[] buffer, int offset, int transferred) =>
         _messageResolver.OnReceive(buffer, offset, transferred, OnMessageCompleted);

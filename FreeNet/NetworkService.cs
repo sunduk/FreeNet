@@ -32,7 +32,7 @@ public class NetworkService
     /// <summary>
     /// Raised when a new session is fully initialised and ready for application use.
     /// </summary>
-    public event EventHandler<EventArgs<UserToken>>? SessionCreated;
+    public event EventHandler<SessionEventArgs>? SessionCreated;
 
     /// <summary>
     /// Gets the logic-thread dispatcher, or <c>null</c> when not used.
@@ -100,7 +100,7 @@ public class NetworkService
         Usermanager.Add(userToken);
         userToken.StartPipelinesAsync(_serverCancellation.Token);
 
-        SessionCreated?.Invoke(this, new EventArgs<UserToken>(userToken));
+        SessionCreated?.Invoke(this, new SessionEventArgs(userToken));
 
         var msg = Packet.Create(UserToken.SYS_START_HEARTBEAT);
         const byte sendInterval = 5;
@@ -108,14 +108,8 @@ public class NetworkService
         userToken.Send(msg);
     }
 
-    private void OnSessionClosed(object? sender, EventArgs<UserToken>? e)
+    private void OnSessionClosed(object? sender, SessionEventArgs e)
     {
-        var token = e?.Value;
-        if (token is null)
-        {
-            return;
-        }
-
-        Usermanager.Remove(token);
+        Usermanager.Remove(e.Token);
     }
 }

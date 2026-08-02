@@ -21,15 +21,9 @@ internal partial class Program
 
     public static int GetConcurrentUserCount() => Userlist.Count;
 
-    public static void OnSessionCreated(object? sender, EventArgs<UserToken> e)
+    public static void OnSessionCreated(object? sender, SessionEventArgs e)
     {
-        var token = e.Value;
-        if (token is null)
-        {
-            return;
-        }
-
-        var user = new GameUser(token);
+        var user = new GameUser(e.Token);
         lock (Userlist)
         {
             Userlist.Add(user);
