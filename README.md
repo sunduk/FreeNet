@@ -28,15 +28,25 @@ FreeNet is a lightweight asynchronous C# network library.
 
 ## Version
 
-* v0.2.0 System.IO.Pipelines modernization
-  * Added modern async I/O via `UserToken.Pipelines.cs`
-  * New `StartPipelinesAsync()` and `QueueSendPipelines()` methods
-  * Backward compatible; existing SAEA-based code unchanged
-  * See [PIPELINES_MODERNIZATION.md](FreeNet/PIPELINES_MODERNIZATION.md) for details
-* v0.1.2 Upgrade to .NET 10
-* v0.1.1 Apply .Net Core
-* v0.1.0 Heartbeat
-* v0.0.1 Initial Release
+* **v0.2.0** - System.IO.Pipelines modernization
+  * Added modern async I/O via `UserToken.cs` for improved performance and resource efficiency
+  * Added `StartPipelinesAsync(CancellationToken)` and pipeline-backed `Send(...)` processing
+  * Backward compatible; existing SAEA-based code remains functional and unchanged
+  * See [PIPELINES_MODERNIZATION.md](documents/PIPELINES_MODERNIZATION.md) for migration details
+  * Released with MIT License
+
+* **v0.1.2** - Upgrade to .NET 10
+  * Updated all projects to target .NET 10 runtime
+  * Enhanced async/await patterns and modern C# language features
+
+* **v0.1.1** - Apply .NET Core
+  * Migrated from .NET Framework to .NET Core
+
+* **v0.1.0** - Heartbeat support
+  * Added heartbeat mechanism for connection health monitoring
+
+* **v0.0.1** - Initial Release
+  * Initial async TCP socket server implementation with SAEA pooling
 
 ### Semantic Versioning
 
@@ -49,7 +59,9 @@ FreeNet is a lightweight asynchronous C# network library.
 
 ## License
 
-The source code can be freely used for both commercial and non-commercial purposes.
+FreeNet is released under the [MIT License](LICENSE). The source code can be freely used for both commercial and non-commercial purposes.
+
+See the [LICENSE](LICENSE) file for the full text of the license.
 
 ---
 
