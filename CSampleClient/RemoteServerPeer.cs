@@ -1,4 +1,5 @@
 ﻿using FreeNet;
+using Protocol;
 
 namespace CSampleClient;
 
@@ -30,12 +31,34 @@ internal class RemoteServerPeer : IPeer
     {
         _ = Interlocked.Increment(ref _receivedCount);
 
-        var protocolId = (PROTOCOL)msg.PopProtocolId();
+        var protocolId = msg.PopProtocolId().ToProtocol();
         switch (protocolId)
         {
-            case PROTOCOL.CHAT_MSG_ACK:
-                var text = msg.PopString();
-                Console.WriteLine($"text {text}");
+            //case EPacketProtocol.CHAT_MSG_ACK:
+            //	{
+            //		string text = msg.pop_string();
+            //		Console.WriteLine(string.Format("받 text {0}", text));
+            //	}
+            //                break;
+            case PacketProtocol.USER_INFO:
+                {
+                    short id = msg.PopInt16();
+                    Console.WriteLine(string.Format("yourid {0}", id));
+                }
+                break;
+            case PacketProtocol.MOVE_CAST:
+                {
+                    var ret = new SCMoveCast(msg);
+                    Console.WriteLine(ret.ToString());
+                    //short userid = msg.PopInt16();
+                    //float x = msg.PopFloat();
+                    //float y = msg.PopFloat();
+                    //float z = msg.PopFloat();
+                    //float r = msg.PopFloat();
+                    //Console.WriteLine($"move {userid} {x} {y} {z} {r}");
+                }
+                break;
+            default:
                 break;
         }
     }

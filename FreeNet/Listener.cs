@@ -18,12 +18,12 @@ internal class Listener
     public NewClientHandler CallbackOnNewClient;
 
     /// <summary>
-    /// 비동기 Accept를 위한 EventArgs.
+    /// EventArgs for asynchronous accept operations.
     /// </summary>
     private SocketAsyncEventArgs _acceptArgs;
 
     /// <summary>
-    /// Accept처리의 순서를 제어하기 위한 이벤트 변수.
+    /// Event used to control the accept processing sequence.
     /// </summary>
     private AutoResetEvent _flowControlEvent;
 
@@ -35,13 +35,10 @@ internal class Listener
     /// <summary>
     /// Initializes a new instance of the <see cref="Listener"/> class.
     /// </summary>
-    public Listener()
-    {
-        CallbackOnNewClient = null;
-    }
+    public Listener() => CallbackOnNewClient = null;
 
     /// <summary>
-    /// 새로운 클라이언트가 접속했을 때 호출되는 콜백.
+    /// Callback invoked when a new client connection is accepted.
     /// </summary>
     /// <param name="client_socket">The client socket.</param>
     /// <param name="token">The token.</param>
@@ -81,7 +78,7 @@ internal class Listener
     }
 
     /// <summary>
-    /// 루프를 돌며 클라이언트를 받아들입니다. 하나의 접속 처리가 완료된 후 다음 accept를 수행하기 위해서 event객체를 통해 흐름을 제어하도록 구현되어 있습니다.
+    /// Accepts clients in a loop. The flow is controlled through an event so the next accept runs only after the previous connection has been processed.
     /// </summary>
     private void DoListen()
     {
@@ -89,14 +86,14 @@ internal class Listener
 
         while (true)
         {
-            // SocketAsyncEventArgs를 재사용 하기 위해서 null로 만들어 준다.
+            // Reset to null so the SocketAsyncEventArgs can be reused.
             _acceptArgs.AcceptSocket = null;
 
             bool pending;
             try
             {
-                // 비동기 accept를 호출하여 클라이언트의 접속을 받아들입니다. 비동기 매소드 이지만 동기적으로 수행이 완료될 경우도 있으니 리턴값을 확인하여
-                // 분기시켜야 합니다.
+                // Call asynchronous accept to receive a client connection. Even though this is an asynchronous method,
+                // it can complete synchronously, so the return value must be checked.
                 pending = _listenSocket.AcceptAsync(_acceptArgs);
             }
             catch
@@ -105,52 +102,53 @@ internal class Listener
                 continue;
             }
 
-            // 즉시 완료 되면 이벤트가 발생하지 않으므로 리턴값이 false일 경우 콜백 매소드를 직접 호출해 줍니다. pending상태라면 비동기 요청이 들어간
-            // 상태이므로 콜백 매소드를 기다리면 됩니다. http://msdn.microsoft.com/ko-kr/library/system.net.sockets.socket.acceptasync%28v=vs.110%29.aspx
+            // If it completes immediately, no event is raised, so call the callback directly when the return value is false.
+            // If it is pending, wait for the asynchronous callback instead. http://msdn.microsoft.com/ko-kr/library/system.net.sockets.socket.acceptasync%28v=vs.110%29.aspx
             if (!pending)
             {
                 OnAcceptCompleted(null, _acceptArgs);
             }
 
-            // 클라이언트 접속 처리가 완료되면 이벤트 객체의 신호를 전달받아 다시 루프를 수행하도록 합니다.
+            // Once client connection handling is complete, wait for the event signal before continuing the loop.
             _ = _flowControlEvent.WaitOne();
 
-            // *팁 : 반드시 WaitOne -> Set 순서로 호출 되야 하는 것은 아닙니다. Accept작업이 굉장히 빨리 끝나서 Set -> WaitOne 순서로
-            // 호출된다고 하더라도 다음 Accept 호출 까지 문제 없이 이루어 집니다. WaitOne매소드가 호출될 때 이벤트 객체가 이미 signalled 상태라면
-            // 스레드를 대기 하지 않고 계속 진행하기 때문입니다.
+            // *Tip: It does not have to be called strictly in WaitOne -> Set order. Even if the accept operation
+            // completes so quickly that Set -> WaitOne happens first, the next accept call still proceeds correctly.
+            // If the event is already signaled when WaitOne is called, the thread continues without blocking.
         }
     }
 
     /// <summary>
-    /// AcceptAsync의 콜백 매소드
+    /// Callback method for AcceptAsync.
     /// </summary>
     /// <param name="sender"></param>
-    /// <param name="e">AcceptAsync 매소드 호출시 사용된 EventArgs</param>
+    /// <param name="e">The EventArgs used when calling AcceptAsync.</param>
     private void OnAcceptCompleted(object sender, SocketAsyncEventArgs e)
     {
         if (e.SocketError == SocketError.Success)
         {
-            // 새로 생긴 소켓을 보관해 놓은뒤~
+            // Store the newly accepted socket.
             var client_socket = e.AcceptSocket;
             client_socket.NoDelay = true;
 
-            // 이 클래스에서는 accept까지의 역할만 수행하고 클라이언트의 접속 이후의 처리는 외부로 넘기기 위해서 콜백 매소드를 호출해 주도록 합니다. 이유는 소켓
-            // 처리부와 컨텐츠 구현부를 분리하기 위함입니다. 컨텐츠 구현부분은 자주 바뀔 가능성이 있지만, 소켓 Accept부분은 상대적으로 변경이 적은 부분이기
-            // 때문에 양쪽을 분리시켜주는것이 좋습니다. 또한 클래스 설계 방침에 따라 Listen에 관련된 코드만 존재하도록 하기 위한 이유도 있습니다.
+            // This class is responsible only for accepting connections. It invokes the callback so that post-accept
+            // client handling can be delegated externally. This separates socket handling from content implementation.
+            // Content logic is more likely to change, while the socket accept path changes less often, so keeping
+            // them separate is beneficial. It also keeps this class focused on listening-related code only.
             CallbackOnNewClient?.Invoke(client_socket, e.UserToken);
 
-            // 다음 연결을 받아들인다.
+            // Accept the next connection.
             _ = _flowControlEvent.Set();
 
             return;
         }
         else
         {
-            // TODO: Accept 실패 처리.
+            // TODO: Handle accept failure.
             Console.WriteLine($"Failed to accept client. {e.SocketError}"); // TODO: Assumes there is a console to write to. Consider using a logging framework instead.
         }
 
-        // 다음 연결을 받아들인다.
+        // Accept the next connection.
         _ = _flowControlEvent.Set();
     }
 }

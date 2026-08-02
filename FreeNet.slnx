@@ -16,4 +16,6 @@
   <Project Path="CSampleServer/CSampleServer.csproj" />
   <Project Path="FreeNet.Tests/FreeNet.Tests.csproj" />
   <Project Path="FreeNet/FreeNet.csproj" />
+  <Project Path="Protocol.Tests/Protocol.Tests.csproj" Id="fae44e1e-6b37-46bd-82e2-3f243cee8d96" />
+  <Project Path="Protocol/Protocol.csproj" Id="931a3121-5164-4ad8-8ac7-7f3e48b62db7" />
 </Solution>

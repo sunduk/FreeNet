@@ -1,19 +1,28 @@
 ﻿using CSampleClient;
 using FreeNet;
+using Protocol;
 using System.Net;
 
 PacketBufferManager.Initialize(2000);
 
-// CNetworkService객체는 메시지의 비동기 송,수신 처리를 수행한다. 메시지 송,수신은 서버, 클라이언트 모두 동일한 로직으로 처리될 수 있으므로
-// CNetworkService객체를 생성하여 Connector객체에 넘겨준다.
+// The NetworkService object handles asynchronous message sending and receiving.
+// Because the same logic can be used by both the server and client, create a NetworkService object and pass it to the Connector.
 NetworkService service = new(true);
 
-// endpoint정보를 갖고있는 Connector생성. 만들어둔 NetworkService객체를 넣어준다.
+// Create a Connector with the endpoint information and provide the NetworkService object you created.
 Connector connector = new(service);
+
+var uri = "sam.gamebass.net";
+var addresses = Dns.GetHostAddresses(uri);
+
+foreach (var address in addresses)
+{
+    Console.WriteLine(address.ToString());
+}
 
 List<IPeer> gameServers = [];
 
-// 접속 성공시 호출될 콜백 매소드 지정.
+// Register the callback method that will be invoked when the connection succeeds.
 connector.ConnectedCallback += serverToken =>
 {
     lock (gameServers)
@@ -25,7 +34,7 @@ connector.ConnectedCallback += serverToken =>
     }
 };
 
-IPEndPoint endpoint = new(IPAddress.Parse("127.0.0.1"), 7979);
+var endpoint = new IPEndPoint(addresses[0], 3369);
 connector.Connect(endpoint);
 
 while (true)
@@ -37,9 +46,21 @@ while (true)
         break;
     }
 
-    var msg = Packet.Create((short)PROTOCOL.CHAT_MSG_REQ);
-    msg.Push(line);
-    gameServers[0].Send(msg);
+    if (line.StartsWith("move"))
+    {
+        var msg = Packet.Create((short)PacketProtocol.MOVE_REQ);
+        msg.Push(1.0f); // x
+        msg.Push(2.0f); // y
+        msg.Push(3.0f); // z
+        msg.Push(4.0f); // r
+        gameServers[0].Send(msg);
+    }
+    else
+    {
+        //CPacket msg = CPacket.create((short)EPacketProtocol.CHAT_MSG_REQ);
+        //msg.push(line);
+        //gameServers[0].Send(msg);
+    }
 }
 
 ((RemoteServerPeer)gameServers[0]).Token.Disconnect();

@@ -13,6 +13,13 @@ FreeNet is a lightweight asynchronous C# network library.
 
 ---
 
+## Fork Changes
+
+* Added character movement packets and support for .NET 10
+* Unity project repository: [https://github.com/NyanReal/unitymobclient](https://github.com/NyanReal/unitymobclient)
+
+---
+
 ## Contact
 
 * Email me if you have any questions : lee.seokhyun@gmail.com
@@ -24,7 +31,7 @@ FreeNet is a lightweight asynchronous C# network library.
 * v0.1.2 Upgrade to .NET 10
 * v0.1.1 Apply .Net Core
 * v0.1.0 Heartbeat
-* v0.0.1
+* v0.0.1 Initial Release
 
 ### Semantic Versioning
 
