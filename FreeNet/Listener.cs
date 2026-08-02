@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace FreeNet;
 
@@ -15,27 +16,24 @@ internal class Listener
     /// <summary>
     /// The callback on new client
     /// </summary>
-    public NewClientHandler CallbackOnNewClient;
-
-    /// <summary>
-    /// EventArgs for asynchronous accept operations.
-    /// </summary>
-    private SocketAsyncEventArgs _acceptArgs;
-
-    /// <summary>
-    /// Event used to control the accept processing sequence.
-    /// </summary>
-    private AutoResetEvent _flowControlEvent;
+    public event NewClientHandler? CallbackOnNewClient;
 
     /// <summary>
     /// The listen socket
     /// </summary>
-    private Socket _listenSocket;
+    private Socket? _listenSocket;
+
+    /// <summary>
+    /// Cancellation source for the accept loop.
+    /// </summary>
+    private CancellationTokenSource? _stopAccepting;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Listener"/> class.
     /// </summary>
-    public Listener() => CallbackOnNewClient = null;
+    public Listener()
+    {
+    }
 
     /// <summary>
     /// Callback invoked when a new client connection is accepted.
@@ -64,62 +62,61 @@ internal class Listener
         {
             _listenSocket.Bind(endpoint);
             _listenSocket.Listen(backlog);
-
-            _acceptArgs = new SocketAsyncEventArgs();
-            _acceptArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted);
-
-            Thread listen_thread = new(DoListen);
-            listen_thread.Start();
+            _stopAccepting = new CancellationTokenSource();
+            _ = DoListenAsync(_stopAccepting.Token);
         }
-        catch
+        catch (SocketException)
         {
-            // ignored
+            _listenSocket.Dispose();
+            _listenSocket = null;
+            throw;
         }
     }
 
     /// <summary>
-    /// Accepts clients in a loop. The flow is controlled through an event so the next accept runs only after the previous connection has been processed.
+    /// Stops accepting clients.
     /// </summary>
-    private void DoListen()
+    public void Stop()
     {
-        _flowControlEvent = new AutoResetEvent(false);
+        _stopAccepting?.Cancel();
+        _listenSocket?.Close();
+    }
 
-        while (true)
+    /// <summary>
+    /// Accepts clients in a loop using the modern Socket.AcceptAsync API.
+    /// </summary>
+    private async Task DoListenAsync(CancellationToken cancellationToken)
+    {
+        if (_listenSocket is null)
         {
-            // Reset to null so the SocketAsyncEventArgs can be reused.
-            _acceptArgs.AcceptSocket = null;
+            return;
+        }
 
-            bool pending;
+        while (!cancellationToken.IsCancellationRequested)
+        {
             try
             {
-                // Call asynchronous accept to receive a client connection. Even though this is an asynchronous method,
-                // it can complete synchronously, so the return value must be checked.
-                pending = _listenSocket.AcceptAsync(_acceptArgs);
+                var clientSocket = await _listenSocket.AcceptAsync(cancellationToken).ConfigureAwait(false);
+                clientSocket.NoDelay = true;
+                CallbackOnNewClient?.Invoke(clientSocket, null);
             }
-            catch
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // ignored
-                continue;
+                return;
             }
-
-            // If it completes immediately, no event is raised, so call the callback directly when the return value is false.
-            // If it is pending, wait for the asynchronous callback instead. http://msdn.microsoft.com/ko-kr/library/system.net.sockets.socket.acceptasync%28v=vs.110%29.aspx
-            if (!pending)
+            catch (ObjectDisposedException) when (cancellationToken.IsCancellationRequested)
             {
-                OnAcceptCompleted(null, _acceptArgs);
+                return;
             }
-
-            // Once client connection handling is complete, wait for the event signal before continuing the loop.
-            _ = _flowControlEvent.WaitOne();
-
-            // *Tip: It does not have to be called strictly in WaitOne -> Set order. Even if the accept operation
-            // completes so quickly that Set -> WaitOne happens first, the next accept call still proceeds correctly.
-            // If the event is already signaled when WaitOne is called, the thread continues without blocking.
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"Failed to accept client. {ex.SocketErrorCode}");
+            }
         }
     }
 
     /// <summary>
-    /// Callback method for AcceptAsync.
+    /// Compatibility callback for tests and legacy code paths.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e">The EventArgs used when calling AcceptAsync.</param>
@@ -127,28 +124,14 @@ internal class Listener
     {
         if (e.SocketError == SocketError.Success)
         {
-            // Store the newly accepted socket.
-            var client_socket = e.AcceptSocket;
-            client_socket.NoDelay = true;
-
-            // This class is responsible only for accepting connections. It invokes the callback so that post-accept
-            // client handling can be delegated externally. This separates socket handling from content implementation.
-            // Content logic is more likely to change, while the socket accept path changes less often, so keeping
-            // them separate is beneficial. It also keeps this class focused on listening-related code only.
-            CallbackOnNewClient?.Invoke(client_socket, e.UserToken);
-
-            // Accept the next connection.
-            _ = _flowControlEvent.Set();
-
+            if (e.AcceptSocket is not null)
+            {
+                e.AcceptSocket.NoDelay = true;
+                CallbackOnNewClient?.Invoke(e.AcceptSocket, e.UserToken);
+            }
             return;
         }
-        else
-        {
-            // TODO: Handle accept failure.
-            Console.WriteLine($"Failed to accept client. {e.SocketError}"); // TODO: Assumes there is a console to write to. Consider using a logging framework instead.
-        }
 
-        // Accept the next connection.
-        _ = _flowControlEvent.Set();
+        Console.WriteLine($"Failed to accept client. {e.SocketError}");
     }
 }

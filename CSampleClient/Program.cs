@@ -35,7 +35,7 @@ connector.ConnectedCallback += serverToken =>
 };
 
 var endpoint = new IPEndPoint(addresses[0], 3369);
-connector.Connect(endpoint);
+await connector.ConnectAsync(endpoint);
 
 while (true)
 {

@@ -23,7 +23,6 @@ public class NetworkService
     /// <param name="useLogicThread">true=Create single logic thread. false=Not use any logic thread.</param>
     public NetworkService(bool useLogicThread = false)
     {
-        SessionCreatedCallback = null;
         Usermanager = new ServerUserManager();
 
         if (useLogicThread)
@@ -49,7 +48,7 @@ public class NetworkService
     /// Gets or sets the session created callback.
     /// </summary>
     /// <value>The session created callback.</value>
-    public SessionHandler SessionCreatedCallback { get; set; }
+    public event SessionHandler? SessionCreatedCallback;
 
     /// <summary>
     /// Gets the usermanager.
@@ -164,12 +163,12 @@ public class NetworkService
         // From a client perspective, two EventArgs per connected server are enough, so plain new is used.
         // For pooling client->server paths, create a separate pool.
         SocketAsyncEventArgs receiveEventArg = new();
-        receiveEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(OnReceiveCompleted);
+        receiveEventArg.Completed += OnReceiveCompleted;
         receiveEventArg.UserToken = token;
         receiveEventArg.SetBuffer(new byte[1024], 0, 1024);
 
         SocketAsyncEventArgs sendEventArg = new();
-        sendEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(OnSendCompleted);
+        sendEventArg.Completed += OnSendCompleted;
         sendEventArg.UserToken = token;
         sendEventArg.SetBuffer(null, 0, 0);
 

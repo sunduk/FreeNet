@@ -11,7 +11,6 @@ public class NetworkServiceTests
         var service = new NetworkService();
         var connector = new Connector(service);
         _ = await Assert.That(connector is not null).IsTrue();
-        _ = await Assert.That(connector?.ConnectedCallback is null).IsTrue();
     }
 
     [Test]

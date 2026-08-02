@@ -112,9 +112,7 @@ public class ServiceLifecycleTests
     {
         var listener = new Listener();
         var accepted = false;
-        listener.CallbackOnNewClient = (socket, _) => accepted = socket is not null;
-
-        SetField(listener, "_flowControlEvent", new AutoResetEvent(false));
+        listener.CallbackOnNewClient += (socket, _) => accepted = socket is not null;
 
         var acceptArgs = new SocketAsyncEventArgs
         {
