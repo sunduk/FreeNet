@@ -8,8 +8,4 @@
     <InternalsVisibleTo Include="FreeNet.Tests" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Examples\" />
-  </ItemGroup>
-
 </Project>
