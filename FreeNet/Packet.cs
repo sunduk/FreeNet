@@ -89,8 +89,8 @@ public class Packet
     {
         Packet packet = new();
 
-        // TODO: Next refactoring target is this spot: CPacketBufferManager!!!
-        //CPacket packet = CPacketBufferManager.pop();
+        // TODO: Next refactoring target is this spot: PacketBufferManager!!!
+        //Packet packet = PacketBufferManager.Pop();
         packet.SetProtocol(protocol_id);
         return packet;
     }
@@ -102,7 +102,7 @@ public class Packet
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public static void Destroy(Packet packet)
     {
-        //PacketBufferManager.push(packet);
+        //PacketBufferManager.Push(packet);
     }
 
     /// <summary>

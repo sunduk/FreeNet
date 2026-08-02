@@ -8,7 +8,7 @@ namespace FreeNet;
 /// Connects to a server using endpoint information.
 /// Create and use one instance per target server you want to connect to.
 /// </summary>
-public class Connector(NetworkService network_service)
+public class Connector(NetworkService networkService)
 {
     /// <summary>
     /// Socket used to connect to the remote server.
@@ -30,8 +30,8 @@ public class Connector(NetworkService network_service)
     /// <summary>
     /// Connects to the specified remote endpoint.
     /// </summary>
-    /// <param name="remote_endpoint">The remote endpoint.</param>
-    public void Connect(IPEndPoint remote_endpoint)
+    /// <param name="remoteEndpoint">The remote endpoint.</param>
+    public void Connect(IPEndPoint remoteEndpoint)
     {
         _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
         {
@@ -39,13 +39,13 @@ public class Connector(NetworkService network_service)
         };
 
         // Event args for asynchronous connect.
-        SocketAsyncEventArgs event_arg = new();
-        event_arg.Completed += OnConnectCompleted;
-        event_arg.RemoteEndPoint = remote_endpoint;
-        var pending = _client.ConnectAsync(event_arg);
+        SocketAsyncEventArgs socketAsyncEventArgs = new();
+        socketAsyncEventArgs.Completed += OnConnectCompleted;
+        socketAsyncEventArgs.RemoteEndPoint = remoteEndpoint;
+        var pending = _client.ConnectAsync(socketAsyncEventArgs);
         if (!pending)
         {
-            OnConnectCompleted(this, event_arg);
+            OnConnectCompleted(this, socketAsyncEventArgs);
         }
     }
 
@@ -60,7 +60,7 @@ public class Connector(NetworkService network_service)
         {
             //Console.WriteLine("Connect completd!");
             // Here, token represents the currently connected remote server.
-            UserToken token = new(network_service.LogicEntry);
+            UserToken token = new(networkService.LogicEntry);
 
             // 1) Notify application code with the "connect completed" callback.
             // This must happen before starting receive handling in network code so the app is fully prepared.
@@ -69,7 +69,7 @@ public class Connector(NetworkService network_service)
 
             // 2) Prepare data receiving. Packet receive can start immediately after this call.
             // The application must already be ready to process packets passed from network code.
-            network_service.OnConnectCompleted(_client, token);
+            networkService.OnConnectCompleted(_client, token);
         }
         else
         {

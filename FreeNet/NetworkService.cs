@@ -33,14 +33,38 @@ public class NetworkService
         }
     }
 
+    /// <summary>
+    /// Delegate SessionHandler
+    /// </summary>
+    /// <param name="token">The user token.</param>
     public delegate void SessionHandler(UserToken token);
 
+    /// <summary>
+    /// Gets the logic entry.
+    /// </summary>
+    /// <value>The logic entry.</value>
     public LogicMessageEntry LogicEntry { get; private set; }
+
+    /// <summary>
+    /// Gets or sets the session created callback.
+    /// </summary>
+    /// <value>The session created callback.</value>
     public SessionHandler SessionCreatedCallback { get; set; }
+
+    /// <summary>
+    /// Gets the usermanager.
+    /// </summary>
+    /// <value>The usermanager.</value>
     public ServerUserManager Usermanager { get; private set; }
 
+    /// <summary>
+    /// Disables the heartbeat checking.
+    /// </summary>
     public void DisableHeartbeat() => Usermanager.StopHeartbeatChecking();
 
+    /// <summary>
+    /// Initializes this instance.
+    /// </summary>
     public void Initialize()
     {
         // configs.

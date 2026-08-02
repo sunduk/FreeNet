@@ -9,17 +9,6 @@ namespace FreeNet;
 public delegate void CompletedMessageCallback(ArraySegment<byte> buffer);
 
 /// <summary>
-/// Defines class.
-/// </summary>
-internal class Defines
-{
-    /// <summary>
-    /// The header size
-    /// </summary>
-    public static readonly short HEADERSIZE = 4;
-}
-
-/// <summary>
 /// Parses data with a [header][body] structure.
 /// - header: total message size, using the type size defined by Defines.HEADERSIZE (Int16 for 2 bytes, Int32 for 4 bytes).
 /// - body: message payload.
@@ -27,21 +16,34 @@ internal class Defines
 /// </summary>
 internal class MessageResolver
 {
-    // Buffer being assembled.
+    /// <summary>
+    /// Buffer being assembled.
+    /// </summary>
     private readonly byte[] _messageBuffer = new byte[1024];
 
-    // Index into the in-progress buffer. Reset to 0 after one packet is completed.
+    /// <summary>
+    /// Index into the in-progress buffer. Reset to 0 after one packet is completed.
+    /// </summary>
     private int _currentPosition;
 
-    // Message size.
+    /// <summary>
+    /// Message size.
+    /// </summary>
     private int _messageSize;
 
-    // Target position to read up to.
+    /// <summary>
+    /// Target position to read up to.
+    /// </summary>
     private int _positionToRead;
 
-    // Remaining bytes.
+    /// <summary>
+    /// Remaining bytes.
+    /// </summary>
     private int _remainBytes;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MessageResolver"/> class.
+    /// </summary>
     public MessageResolver()
     {
         _messageSize = 0;
@@ -50,6 +52,9 @@ internal class MessageResolver
         _remainBytes = 0;
     }
 
+    /// <summary>
+    /// Clears the buffer and resets positions.
+    /// </summary>
     public void ClearBuffer()
     {
         Array.Clear(_messageBuffer, 0, _messageBuffer.Length);
@@ -131,7 +136,7 @@ internal class MessageResolver
     /// Gets total packet size (header + body). The header already stores total message size,
     /// so this only converts according to header width.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Total message size.</returns>
     private int GetTotalMessageSize()
     {
         if (Defines.HEADERSIZE == 2)

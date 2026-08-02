@@ -23,8 +23,8 @@ internal class Peer
     public static void OnMessage(Const<byte[]> buffer)
     {
         Packet msg = new(buffer.Value, null);
-        var protocol_id = msg.PopInt16();
-        switch (protocol_id)
+        var protocolId = msg.PopInt16();
+        switch (protocolId)
         {
             case 1:
                 var number = msg.PopInt32();
@@ -34,7 +34,7 @@ internal class Peer
                     string.Format(
                         "[{0}] [received] {1} : {2}, {3}",
                         Environment.CurrentManagedThreadId,
-                        protocol_id,
+                        protocolId,
                         number,
                         text));
 

@@ -10,9 +10,10 @@ namespace FreeNet;
 public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
 {
     private readonly AutoResetEvent _logicEvent = new(false);
-    private readonly ILogicQueue _messageQueue = new DoubleBufferingQueue();
+    private readonly DoubleBufferingQueue _messageQueue = new();
 
-    void IMessageDispatcher.OnMessage(UserToken user, ArraySegment<byte> buffer)
+    /// <inheritdoc/>
+    public void OnMessage(UserToken user, ArraySegment<byte> buffer)
     {
         // Called on the I/O thread. Enqueue the completed packet.
         Packet msg = new(buffer, user);

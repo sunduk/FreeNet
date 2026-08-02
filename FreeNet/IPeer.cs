@@ -8,12 +8,9 @@
 /// </summary>
 public interface IPeer
 {
-    // Removed.
-    //void OnMessage(ArraySegment<byte> buffer);
-
-    // Removed.
-    //void ProcessUserOperation(CPacket msg);
-
+    /// <summary>
+    /// Disconnects this instance.
+    /// </summary>
     void Disconnect();
 
     /// <summary>
