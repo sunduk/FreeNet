@@ -16,12 +16,12 @@ public class StateManager<T, T2>
     private readonly Dictionary<IState, MessageDispatcher<T, T2>> _messageDispatcher;
 
     private readonly Dictionary<Enum, IState> _states = [];
-    private IState _currentState;
+    private IState? _currentState;
 
     /// <summary>
     /// Current state type.
     /// </summary>
-    private Enum _currentStateType;
+    private Enum? _currentStateType;
 
     public StateManager() => _messageDispatcher = [];
 

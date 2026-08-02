@@ -7,5 +7,5 @@ internal class UserPlayState(GameUser owner) : IUserState
     /// </summary>
     /// <param name="message">The message.</param>
     void IUserState.OnMessage(FreeNet.Packet message) =>
-        owner.BattleRoom.OnReceive(owner.Player, message);
+        owner.BattleRoom?.OnReceive(owner.Player, message);
 }

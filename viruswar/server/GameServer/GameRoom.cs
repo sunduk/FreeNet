@@ -129,7 +129,7 @@ public class GameRoom
     /// </summary>
     /// <param name="player1"></param>
     /// <param name="player2"></param>
-    public void EnterGameRoom(Player player1, Player player2)
+    public void EnterGameRoom(Player? player1, Player? player2)
     {
         if (player1 is null || player2 is null)
         {
@@ -183,8 +183,13 @@ public class GameRoom
     /// Called when a player's connection is closed.
     /// </summary>
     /// <param name="player"></param>
-    public void OnPlayerRemoved(Player player)
+    public void OnPlayerRemoved(Player? player)
     {
+        if (player is null)
+        {
+            return;
+        }
+
         _ = _players.Remove(player);
         if (_players.Count <= 1)
         {
@@ -193,13 +198,18 @@ public class GameRoom
     }
 
     /// <summary>
-    /// Called when [receive].
+    /// Called when a player sends a packet to the room.
     /// </summary>
     /// <param name="owner">The owner.</param>
-    /// <param name="msg">The MSG.</param>
-    public void OnReceive(Player owner, Packet msg)
+    /// <param name="message">The message.</param>
+    public void OnReceive(Player? owner, Packet message)
     {
-        var protocol = (PROTOCOL)msg.PopProtocolId();
+        if (owner is null)
+        {
+            return;
+        }
+
+        var protocol = (PROTOCOL)message.PopProtocolId();
         if (IsReceived(owner.PlayerIndex, protocol))
         {
             // Player already sent this protocol. Return without duplicate handling.
@@ -211,7 +221,7 @@ public class GameRoom
 
         // Forward sender and packet data to the state manager.
         // Subsequent game logic is handled by the currently active state object.
-        StateManager.SendStateMessage(protocol, owner, msg);
+        StateManager.SendStateMessage(protocol, owner, message);
     }
 
     public void RemoveSelf() => _roomManager.RemoveRoom(this);

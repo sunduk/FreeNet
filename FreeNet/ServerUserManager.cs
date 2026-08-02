@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-
-namespace FreeNet;
+﻿namespace FreeNet;
 
 /// <summary>
 /// Manages all currently connected users.
@@ -14,12 +10,19 @@ public class ServerUserManager
     private long _heartbeatDuration;
     private Timer? _timerHeartbeat;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerUserManager"/> class.
+    /// </summary>
     public ServerUserManager()
     {
         _user = new Lock();
         _users = [];
     }
 
+    /// <summary>
+    /// Adds the specified user.
+    /// </summary>
+    /// <param name="user">The user.</param>
     public void Add(UserToken user)
     {
         using (_user.EnterScope())
@@ -28,6 +31,11 @@ public class ServerUserManager
         }
     }
 
+    /// <summary>
+    /// Determines whether the specified user exists.
+    /// </summary>
+    /// <param name="user">The user.</param>
+    /// <returns><c>true</c> if the user exists; otherwise, <c>false</c>.</returns>
     public bool Exists(UserToken user)
     {
         using (_user.EnterScope())
@@ -36,6 +44,10 @@ public class ServerUserManager
         }
     }
 
+    /// <summary>
+    /// Gets the total count.
+    /// </summary>
+    /// <returns>System.Int32.</returns>
     public int GetTotalCount()
     {
         using (_user.EnterScope())
@@ -44,6 +56,10 @@ public class ServerUserManager
         }
     }
 
+    /// <summary>
+    /// Removes the specified user.
+    /// </summary>
+    /// <param name="user">The user.</param>
     public void Remove(UserToken user)
     {
         using (_user.EnterScope())
@@ -52,12 +68,20 @@ public class ServerUserManager
         }
     }
 
-    public void StartHeartbeatChecking(uint check_interval_sec, uint allow_duration_sec)
+    /// <summary>
+    /// Starts the heartbeat checking.
+    /// </summary>
+    /// <param name="checkIntervalSec">The check interval in seconds.</param>
+    /// <param name="allowDurationSec">The allowed duration in seconds.</param>
+    public void StartHeartbeatChecking(uint checkIntervalSec, uint allowDurationSec)
     {
-        _heartbeatDuration = allow_duration_sec * 10000000;
-        _timerHeartbeat = new Timer(CheckHeartbeat, null, 1000 * check_interval_sec, 1000 * check_interval_sec);
+        _heartbeatDuration = allowDurationSec * 10000000;
+        _timerHeartbeat = new Timer(CheckHeartbeat, null, 1000 * checkIntervalSec, 1000 * checkIntervalSec);
     }
 
+    /// <summary>
+    /// Stops the heartbeat checking.
+    /// </summary>
     public void StopHeartbeatChecking() => _timerHeartbeat?.Dispose();
 
     private void CheckHeartbeat(object? state)

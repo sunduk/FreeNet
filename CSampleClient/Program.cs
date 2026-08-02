@@ -47,7 +47,7 @@ while (true)
         break;
     }
 
-    if (line.StartsWith("move"))
+    if (line?.StartsWith("move") == true)
     {
         var msg = Packet.Create((short)PacketProtocol.MOVE_REQ);
         msg.Push(1.0f); // x

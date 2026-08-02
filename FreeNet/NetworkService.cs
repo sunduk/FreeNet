@@ -14,6 +14,8 @@ public class NetworkService
     /// </summary>
     private readonly CancellationTokenSource _serverCancellation = new();
 
+    private Listener? _clientListener;
+
     /// <summary>
     /// Set <paramref name="useLogicThread"/> to <c>true</c> to process incoming packets on a single dedicated logic
     /// thread. Set it to <c>false</c> to process packets directly on the async I/O tasks.
@@ -54,9 +56,9 @@ public class NetworkService
     /// </summary>
     public void Listen(string host, int port, int backlog)
     {
-        var clientListener = new Listener();
-        clientListener.NewClientConnected += OnNewClientConnected;
-        clientListener.Start(host, port, backlog);
+        _clientListener = new Listener();
+        _clientListener.NewClientConnected += OnNewClientConnected;
+        _clientListener.Start(host, port, backlog);
 
         const byte checkInterval = 10;
         Usermanager.StartHeartbeatChecking(checkInterval, checkInterval);
@@ -73,13 +75,27 @@ public class NetworkService
         token.OnConnected();
 
         Usermanager.Add(token);
-        token.StartPipelinesAsync(_serverCancellation.Token);
+        if (socket.Connected)
+        {
+            token.StartPipelinesAsync(_serverCancellation.Token);
+        }
     }
 
     /// <summary>
     /// Cancels all active connections by signalling the server cancellation token.
     /// </summary>
-    public void StopServer() => _serverCancellation.Cancel();
+    public void StopServer() => StopService();
+
+    /// <summary>
+    /// Cancels all active connections, stops accepting new clients, and stops heartbeat checking.
+    /// </summary>
+    public void StopService()
+    {
+        _serverCancellation.Cancel();
+        _clientListener?.Stop();
+        LogicEntry?.Stop();
+        Usermanager.StopHeartbeatChecking();
+    }
 
     /// <summary>
     /// Invoked for each accepted client socket. Creates a <see cref="UserToken"/>, starts async I/O, raises
@@ -108,8 +124,5 @@ public class NetworkService
         userToken.Send(msg);
     }
 
-    private void OnSessionClosed(object? sender, SessionEventArgs e)
-    {
-        Usermanager.Remove(e.Token);
-    }
+    private void OnSessionClosed(object? sender, SessionEventArgs e) => Usermanager.Remove(e.Token);
 }

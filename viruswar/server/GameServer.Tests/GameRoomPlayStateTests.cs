@@ -81,8 +81,10 @@ public class GameRoomPlayStateTests
 
     private static Player CreatePlayer(byte index)
     {
-        var token = new UserToken(null!);
-        token.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        var token = new UserToken(null!)
+        {
+            Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+        };
 
         var user = new GameUser(token);
         return new Player(user, index);

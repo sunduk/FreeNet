@@ -26,11 +26,13 @@ public class ServiceLifecycleTests
     public async Task ServerUserManager_heartbeat_check_disconnects_stale_sessions()
     {
         var manager = new ServerUserManager();
-        var token = new UserToken(null!);
-        token.Socket = new System.Net.Sockets.Socket(
-            System.Net.Sockets.AddressFamily.InterNetwork,
-            System.Net.Sockets.SocketType.Stream,
-            System.Net.Sockets.ProtocolType.Tcp);
+        var token = new UserToken(null!)
+        {
+            Socket = new System.Net.Sockets.Socket(
+                System.Net.Sockets.AddressFamily.InterNetwork,
+                System.Net.Sockets.SocketType.Stream,
+                System.Net.Sockets.ProtocolType.Tcp)
+        };
 
         SetProperty(token, nameof(UserToken.LatestHeartbeatTime), 0L);
 
@@ -80,7 +82,7 @@ public class ServiceLifecycleTests
         var token = new UserToken(null!);
         service.Usermanager.Add(token);
 
-        InvokeInstance(service, "OnSessionClosed", [null, new SessionEventArgs(token)]);
+        InvokeInstance(service, "OnSessionClosed", [null!, new SessionEventArgs(token)]);
 
         _ = await Assert.That(service.Usermanager.Exists(token)).IsFalse();
     }

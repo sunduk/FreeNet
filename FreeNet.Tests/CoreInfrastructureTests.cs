@@ -89,7 +89,7 @@ public class CoreInfrastructureTests
     [Test]
     public async Task DoubleBufferingQueue_swaps_input_to_output_on_getall()
     {
-        ILogicQueue queue = new DoubleBufferingQueue();
+        var queue = new DoubleBufferingQueue();
         queue.Enqueue(Packet.Create(1));
         queue.Enqueue(Packet.Create(2));
 

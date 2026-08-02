@@ -277,8 +277,8 @@ public partial class UserToken(IMessageDispatcher? dispatcher = null)
         _ioCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var ioToken = _ioCancellation.Token;
 
-        _receiveLoopTask = Task.Run(() => ReceiveLoopAsync(ioToken), ioToken);
-        _sendLoopTask = Task.Run(() => SendLoopAsync(ioToken), ioToken);
+        _receiveLoopTask = ReceiveLoopAsync(ioToken);
+        _sendLoopTask = SendLoopAsync(ioToken);
     }
 
     /// <summary>

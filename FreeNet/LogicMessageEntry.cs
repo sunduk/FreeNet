@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading.Channels;
 
 namespace FreeNet;
 
@@ -9,30 +7,46 @@ namespace FreeNet;
 /// </summary>
 public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
 {
-    private readonly AutoResetEvent _logicEvent = new(false);
-    private readonly DoubleBufferingQueue _messageQueue = new();
+    private readonly CancellationTokenSource _logicCancellation = new();
+
+    private readonly Channel<Packet> _messageChannel = Channel.CreateUnbounded<Packet>(
+        new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = false,
+            AllowSynchronousContinuations = false
+        });
+
+    private Task? _logicTask;
 
     /// <inheritdoc/>
     public void OnMessage(UserToken user, ArraySegment<byte> buffer)
     {
         // Called on the I/O thread. Enqueue the completed packet.
         Packet msg = new(buffer, user);
-        _messageQueue.Enqueue(msg);
-
-        // Wake the logic thread to process work.
-        _ = _logicEvent.Set();
+        _ = _messageChannel.Writer.TryWrite(msg);
     }
 
     /// <summary>
-    /// Starts the logic thread.
+    /// Starts the logic dispatcher loop.
     /// </summary>
     public void Start()
     {
-        Thread logic = new(DoLogic)
+        if (_logicTask is not null)
         {
-            IsBackground = true
-        };
-        logic.Start();
+            return;
+        }
+
+        _logicTask = DoLogicAsync(_logicCancellation.Token);
+    }
+
+    /// <summary>
+    /// Stops the logic dispatcher loop.
+    /// </summary>
+    public void Stop()
+    {
+        _logicCancellation.Cancel();
+        _ = _messageChannel.Writer.TryComplete();
     }
 
     private void DispatchAll(Queue<Packet> queue)
@@ -49,18 +63,23 @@ public class LogicMessageEntry(NetworkService service) : IMessageDispatcher
         }
     }
 
-    /// <summary>
-    /// Logic thread loop.
-    /// </summary>
-    private void DoLogic()
+    private async Task DoLogicAsync(CancellationToken cancellationToken)
     {
-        while (true)
+        try
         {
-            // A packet arrival will wake this thread.
-            _ = _logicEvent.WaitOne();
+            while (await _messageChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                Queue<Packet> pending = new();
+                while (_messageChannel.Reader.TryRead(out var msg))
+                {
+                    pending.Enqueue(msg);
+                }
 
-            // Dispatch messages.
-            DispatchAll(_messageQueue.GetAll());
+                DispatchAll(pending);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
         }
     }
 }
