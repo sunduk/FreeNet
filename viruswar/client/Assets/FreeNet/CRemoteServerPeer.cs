@@ -29,7 +29,7 @@ namespace FreeNetUnity
         }
 
         /// <summary>
-        /// 메시지를 수신했을 때 호출된다.
+        /// Called when a message is received.
         /// </summary>
         void IPeer.on_message(CPacket msg)
 		{

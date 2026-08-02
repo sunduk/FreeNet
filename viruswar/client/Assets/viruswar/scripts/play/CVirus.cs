@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 바이러스 객체.
+/// Virus object.
 /// </summary>
 public class CVirus : MonoBehaviour {
 
-    // 맵 포지션.
+    // Map position.
     public short cell { get; private set; }
 
     GameObject appear;
@@ -16,11 +16,11 @@ public class CVirus : MonoBehaviour {
 
     void Awake()
     {
-        // 생성될 때 사용할 오브젝트.
+        // Object to use when created.
         this.appear = transform.FindChild("appear").gameObject;
         this.appear.SetActive(false);
 
-        // 사라질 때 사용할 오브젝트.
+        // Object to use when disappearing.
         this.disappear = transform.FindChild("destroy").gameObject;
         this.disappear.SetActive(false);
     }
@@ -33,21 +33,21 @@ public class CVirus : MonoBehaviour {
 
 
     /// <summary>
-    /// 대기 상태로 만든다.
+    /// Sets the idle state.
     /// </summary>
     public void idle()
     {
-        // 터치 불가능 하게 한다.
+        // Make it untouchable.
         GetComponent<BoxCollider>().enabled = false;
 
         this.appear.SetActive(true);
-        // 모션을 멈춘다.
+        // Stop the animation.
         this.appear.GetComponent<CRotator>().stop();
     }
 
 
     /// <summary>
-    /// 터치 가능한 상태로 만든다.
+    /// Makes it touchable.
     /// </summary>
     public void touchable()
     {
@@ -56,7 +56,7 @@ public class CVirus : MonoBehaviour {
 
 
     /// <summary>
-    /// 삭제 한다.
+    /// Deletes this virus.
     /// </summary>
     public void destroy()
     {
@@ -67,7 +67,7 @@ public class CVirus : MonoBehaviour {
 
     public void on_touch()
     {
-        // 좌, 우로 흔들거리는 모습 재생.
+        // Play swaying left and right animation.
         this.appear.GetComponent<CRotator>().play();
     }
 

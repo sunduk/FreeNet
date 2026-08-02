@@ -1,5 +1,6 @@
 using FreeNet;
 using GameServer.State;
+using System.Numerics;
 
 namespace GameServer.Tests;
 

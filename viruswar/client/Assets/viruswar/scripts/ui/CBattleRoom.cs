@@ -9,20 +9,19 @@ public class CBattleRoom : MonoBehaviour, IMessageReceiver {
 
     //--------------------------------------------------
     // Define state.
-    // 상태 정의.
     //--------------------------------------------------
     public enum STATE
     {
-        // 게임 시작 전 준비 상태.
+        // Preparation state before game starts.
         READY,
 
-        // 내 턴이 진행중인 상태.
+        // State when my turn is in progress.
         TURN_PLAYING,
 
-        // 상대방 턴이 진행중인 상태.
+        // State when opponent's turn is in progress.
         WAIT,
 
-        // 게임이 끝난 상태.
+        // State when game is over.
         GAMEOVER,
     }
 
@@ -35,75 +34,68 @@ public class CBattleRoom : MonoBehaviour, IMessageReceiver {
 
     //--------------------------------------------------
     // Reference data.
-    // 참조용 데이터.
     //--------------------------------------------------
-    // 가로, 세로 칸 수를 의미한다.
+    // Horizontal and vertical cell count.
     public static readonly int COL_COUNT = 7;
 
 
 
-    //--------------------------------------------------
-    // Game instances.
-    // 게임 객체들.
-    //--------------------------------------------------
-    // 플레이어들.
-    List<CPlayer> players;
+	//--------------------------------------------------
+	// Game instances.
+	//--------------------------------------------------
+	// Players.
+	List<CPlayer> players;
 
-    // 점수등의 플레이어 정보.
-    List<CPlayerGameInfoUI> players_gameinfo;
+	// Player information such as score.
+	List<CPlayerGameInfoUI> players_gameinfo;
 
-	// 현재 턴을 진행중인 플레이어 인덱스.
+	// Index of the player whose turn is in progress.
 	byte current_player_index;
 
-    // 서버에서 지정해준 본인의 플레이어 인덱스.
-    byte player_me_index;
+	// The player index assigned by the server.
+	byte player_me_index;
 
-    // 승리한 플레이어 인덱스.
-    // 무승부일때는 byte.MaxValue가 들어간다.
-    byte win_player_index;
+	// Index of the winning player.
+	// When it's a tie, byte.MaxValue is entered.
+	byte win_player_index;
 
-	// 게임이 종료되었는지를 나타내는 플래그.
+	// Flag indicating whether the game is finished.
 	bool is_game_finished;
 
-    // 상태 매니저.
-    CStateManager state_manager;
+	// State manager.
+	CStateManager state_manager;
 
 
-    void Awake()
+	void Awake()
 	{
-        this.players = new List<CPlayer>();
-        this.players_gameinfo = new List<CPlayerGameInfoUI>();
+		this.players = new List<CPlayer>();
+		this.players_gameinfo = new List<CPlayerGameInfoUI>();
 
-        // 방의 각 상태를 담당하는 인스턴스 생성.
-        this.state_manager = gameObject.AddComponent<CStateManager>();
-        this.state_manager.initialize(STATE_OBJECT_TYPE.ATTACH_TO_SINGLE_OBJECT);
-        this.state_manager.add<CBattleRoomReadyState>(STATE.READY);
-        this.state_manager.add<CBattleRoomWaitState>(STATE.WAIT);
-        this.state_manager.add<CBattleRoomTurnPlayingState>(STATE.TURN_PLAYING);
-        this.state_manager.add<CBattleRoomGameOverState>(STATE.GAMEOVER);
+		// Create instances responsible for each state of the room.
+		this.state_manager = gameObject.AddComponent<CStateManager>();
+		this.state_manager.initialize(STATE_OBJECT_TYPE.ATTACH_TO_SINGLE_OBJECT);
+		this.state_manager.add<CBattleRoomReadyState>(STATE.READY);
+		this.state_manager.add<CBattleRoomWaitState>(STATE.WAIT);
+		this.state_manager.add<CBattleRoomTurnPlayingState>(STATE.TURN_PLAYING);
+		this.state_manager.add<CBattleRoomGameOverState>(STATE.GAMEOVER);
 
-        // 초기 상태 설정.
-        this.state_manager.change_state(STATE.READY);
-    }
+		// Set initial state.
+		this.state_manager.change_state(STATE.READY);
+	}
 
 
     /// <summary>
     /// Called when enter the game from client.
     /// Load resources if you need.
-    /// 
-    /// 게임방에 입장할 때 클라이언트에서 호출된다.
-    /// 필요한 리소스가 있다면 여기서 로딩한다.
     /// </summary>
     public void start_loading()
     {
         clear_before_start();
 
         // From now on, this class instance will receives all network messages.
-        // 네트워크에서 넘어온 메시지를 이 클래스 인스턴스가 받도록 설정한다.
         CNetworkManager.Instance.message_receiver = this;
 
         // Send ready.
-        // 준비 완료 패킷 전송.
         CPacket msg = CPacket.create((short)PROTOCOL.READY_TO_START);
         CNetworkManager.Instance.send(msg);
     }
@@ -142,56 +134,55 @@ public class CBattleRoom : MonoBehaviour, IMessageReceiver {
     }
 
 
-    /// <summary>
-    /// Called when received packets.
-    /// 패킷을 수신 했을 때 호출됨.
-    /// </summary>
-    /// <param name="protocol"></param>
-    /// <param name="msg"></param>
-    void IMessageReceiver.on_recv(CPacket msg)
+	/// <summary>
+	/// Called when received packets.
+	/// </summary>
+	/// <param name="protocol"></param>
+	/// <param name="msg"></param>
+	void IMessageReceiver.on_recv(CPacket msg)
 	{
 		PROTOCOL protocol_id = (PROTOCOL)msg.pop_protocol_id();
 
-        // 동시접속자 정보가 아닌 다른 패킷일 수신했을 경우 WAIT팝업을 닫는다.
-        if (protocol_id != PROTOCOL.CONCURRENT_USERS)
-        {
-            CUIManager.Instance.hide(UI_PAGE.POPUP_WAIT);
-        }
+		// If a packet is received that is not concurrent user information, close the WAIT popup.
+		if (protocol_id != PROTOCOL.CONCURRENT_USERS)
+		{
+			CUIManager.Instance.hide(UI_PAGE.POPUP_WAIT);
+		}
 
 		switch (protocol_id)
 		{
-                // 게임을 시작해라.
+				// Start the game.
 			case PROTOCOL.GAME_START:
 				on_game_start(msg);
 				break;
 
-                // 플레이어가 이동 했다.
+				// Player has moved.
 			case PROTOCOL.PLAYER_MOVED:
 				on_player_moved(msg);
 				break;
 
-                // 턴을 시작해라.
+				// Start turn.
 			case PROTOCOL.START_PLAYER_TURN:
 				on_start_player_turn(msg);
 				break;
 
-                // 방이 삭제됐다. 누가 끊겼던지 강제종료 했던지 등등.
-            case PROTOCOL.ROOM_REMOVED:
-                on_room_removed();
-                break;
+				// Room removed. Someone disconnected or was forcefully closed, etc.
+			case PROTOCOL.ROOM_REMOVED:
+				on_room_removed();
+				break;
 
-                // 게임이 종료됐다.
-            case PROTOCOL.GAME_OVER:
+				// Game is over.
+			case PROTOCOL.GAME_OVER:
 				on_game_over(msg);
 				break;
 
-            case PROTOCOL.CONCURRENT_USERS:
-                {
-                    int count = msg.pop_int32();
-                    CUIManager.Instance.get_uipage(UI_PAGE.STATUS_BAR).GetComponent<CStatusBar>().refresh(count);
-                }
-                break;
-        }
+			case PROTOCOL.CONCURRENT_USERS:
+				{
+					int count = msg.pop_int32();
+					CUIManager.Instance.get_uipage(UI_PAGE.STATUS_BAR).GetComponent<CStatusBar>().refresh(count);
+				}
+				break;
+		}
 	}
 
 
@@ -208,7 +199,7 @@ public class CBattleRoom : MonoBehaviour, IMessageReceiver {
         CUIManager.Instance.show(UI_PAGE.POPUP_COMMON);
         CPopupCommon popup =
             CUIManager.Instance.get_uipage(UI_PAGE.POPUP_COMMON).GetComponent<CPopupCommon>();
-        popup.refresh("상대방이 게임을 나갔습니다.", () => { back_to_main(); });
+        popup.refresh("Opponent has left the game.", () => { back_to_main(); });
 	}
 
 

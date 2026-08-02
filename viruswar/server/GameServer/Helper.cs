@@ -1,4 +1,6 @@
-﻿namespace GameServer;
+﻿using System.Numerics;
+
+namespace GameServer;
 
 public static class Helper
 {

@@ -33,19 +33,19 @@ public class CPopupResult : MonoBehaviour
     {
         if (win_player_index == byte.MaxValue)
         {
-            // draw.
-            this.txt_result.text = "무승부";
+            // Draw.
+            this.txt_result.text = "Draw";
         }
         else
         {
             bool win = win_player_index == player_me_index;
             if (win)
             {
-                this.txt_result.text = "승리!!";
+                this.txt_result.text = "Victory!!";
             }
             else
             {
-                this.txt_result.text = "패배...";
+                this.txt_result.text = "Defeat...";
             }
         }
 

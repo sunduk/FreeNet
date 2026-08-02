@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 플레이어의 현재 상태를 렌더링 하는 역할을 담당.
+/// Responsible for rendering the player's current state.
 /// </summary>
 public class CPlayerRenderer : MonoBehaviour {
 
@@ -48,17 +48,14 @@ public class CPlayerRenderer : MonoBehaviour {
     public void add(short position)
     {
         // Create an instance.
-        // 바이러스 인스턴스 생성.
         GameObject clone = CGameWorld.Instance.instantiate(this.prefab_character);
         clone.transform.parent = transform;
 
         // Set position.
-        // 좌표 설정.
         Vector2 map_position = CHelper.convert_to_position(position);
         clone.transform.localPosition = CHelper.map_to_world(map_position);
 
         // Set default state.
-        // 상태 설정.
         CVirus virus = clone.GetComponent<CVirus>();
         virus.update_position(position);
         virus.idle();
@@ -72,7 +69,7 @@ public class CPlayerRenderer : MonoBehaviour {
         CVirus virus = this.viruses.Find(v => v.is_same(position));
         if (virus == null)
         {
-            // null이면 안되는데??
+            // Should not be null
             Debug.LogErrorFormat("Cannot find a virus of the position. position : {0}", position);
             return;
         }
@@ -85,8 +82,6 @@ public class CPlayerRenderer : MonoBehaviour {
 
     /// <summary>
     /// Makes all viruses touchable.
-    /// 
-    /// 모든 바이러스들을 터치 가능한 상태로 만든다.
     /// </summary>
     public void ready()
     {
@@ -99,8 +94,6 @@ public class CPlayerRenderer : MonoBehaviour {
 
     /// <summary>
     /// Makes all viruses untouchable.
-    /// 
-    /// 모든 바이러스들을 터치 불가능한 상태로 만든다.
     /// </summary>
     public void idle()
     {

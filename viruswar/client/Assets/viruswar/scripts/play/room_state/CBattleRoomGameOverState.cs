@@ -5,7 +5,7 @@ using FreeNet;
 using GameServer;
 
 /// <summary>
-/// 게임이 종료된 상태.
+/// Game over state.
 /// </summary>
 public class CBattleRoomGameOverState : MonoBehaviour, IState
 {
@@ -48,7 +48,7 @@ public class CBattleRoomGameOverState : MonoBehaviour, IState
                 return;
             }
 
-            // 종료 팝업 출력.
+            // Show quit popup.
             CUIManager.Instance.show(UI_PAGE.POPUP_QUIT);
             CPopupQuit popup =
                 CUIManager.Instance.get_uipage(UI_PAGE.POPUP_QUIT).GetComponent<CPopupQuit>();

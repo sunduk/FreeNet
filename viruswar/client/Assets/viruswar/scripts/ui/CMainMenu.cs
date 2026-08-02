@@ -41,7 +41,7 @@ public class CMainMenu : MonoBehaviour, IMessageReceiver
             CUIManager.Instance.show(UI_PAGE.POPUP_NETWORK_PROCESSING);
             CPopupNetworkProcessing popup =
                 CUIManager.Instance.get_uipage(UI_PAGE.POPUP_NETWORK_PROCESSING).GetComponent<CPopupNetworkProcessing>();
-            popup.refresh("서버에 접속중");
+            popup.refresh("Connecting to server");
 
             this.network_manager.connect();
         }
@@ -52,13 +52,13 @@ public class CMainMenu : MonoBehaviour, IMessageReceiver
 
 
     /// <summary>
-    /// 패킷을 수신 했을 때 호출됨.
+    /// Called when a packet is received.
     /// </summary>
     /// <param name="protocol"></param>
     /// <param name="msg"></param>
     void IMessageReceiver.on_recv(CPacket msg)
     {
-        // 제일 먼저 프로토콜 아이디를 꺼내온다.
+        // First, extract the protocol ID.
         PROTOCOL protocol_id = (PROTOCOL)msg.pop_protocol_id();
 
         switch (protocol_id)
@@ -69,7 +69,7 @@ public class CMainMenu : MonoBehaviour, IMessageReceiver
                     CUIManager.Instance.show(UI_PAGE.POPUP_NETWORK_PROCESSING);
                     CPopupNetworkProcessing popup =
                         CUIManager.Instance.get_uipage(UI_PAGE.POPUP_NETWORK_PROCESSING).GetComponent<CPopupNetworkProcessing>();
-                    popup.refresh("매칭 대기중");
+                    popup.refresh("Waiting for match");
 
                     CUIManager.Instance.show(UI_PAGE.STATUS_BAR);
                     CUIManager.Instance.get_uipage(UI_PAGE.STATUS_BAR).GetComponent<CStatusBar>().refresh(1);

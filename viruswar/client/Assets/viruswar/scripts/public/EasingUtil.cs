@@ -2,8 +2,8 @@
 using System.Collections;
 
 /// <summary>
-/// iTween에서 easing부분만 추려내어 만든 클래스.
-/// 사용법은 Mathf.Lerp와 같다. (시작값, 끝값, 시간값) 시간값은 0 ~ 1 사이.
+/// A class created by extracting only the easing part from iTween.
+/// Usage is the same as Mathf.Lerp (start value, end value, time value). Time value is between 0 ~ 1.
 /// </summary>
 public static class EasingUtil
 {

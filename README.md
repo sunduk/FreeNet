@@ -4,12 +4,12 @@ FreeNet is a lightweight asynchronous C# network library.
 
 ---
 
-## Project Info - 프로젝트 정보
+## Project Info
 
-* C# asynchronous network library. - C# 비동기 네트워크 라이브러리.
-* TCP socket server that can be used in game servers. - 게임 서버에서 사용할 수 있는 TCP기반의 socket server.
-* Uses .NET 10 - 사용
-* Can be integrated with Unity if built with .NetFramework - Unity 연동 가능 (.NetFramework버전으로 바꿔서 빌드해야 연동 가능함)
+* C# asynchronous network library.
+* TCP socket server that can be used in game servers.
+* Uses .NET 10
+* Can be integrated with Unity if built with .NetFramework
 
 ---
 
@@ -47,13 +47,13 @@ FreeNet is a lightweight asynchronous C# network library.
 
 ---
 
-## License - 라이선스
+## License
 
-The source code can be freely used for both commercial and non-commercial purposes. - 소스코드는 상업적, 비상업적 어느 용도이든 자유롭게 사용 가능 합니다.
+The source code can be freely used for both commercial and non-commercial purposes.
 
 ---
 
-## Structure - 아키텍처 및 구조
+## Structure
 
 * Transmission Method
   * Asynchronous accept.

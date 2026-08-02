@@ -5,7 +5,7 @@ using FreeNet;
 using GameServer;
 
 /// <summary>
-/// 첫번째 턴 시작 전 대기 상태.
+/// Waiting state before the first turn starts.
 /// </summary>
 public class CBattleRoomReadyState : MonoBehaviour, IState
 {
@@ -38,12 +38,10 @@ public class CBattleRoomReadyState : MonoBehaviour, IState
                 GameObject clone = CGameWorld.Instance.instantiate(source);
 
                 // Convert map position to world position.
-                // 맵 좌표를 월드 좌표로 변환한다.
                 Vector2 map_position = new Vector3(j, i);
                 clone.transform.localPosition = CHelper.map_to_world(map_position);
 
-                // Set button index to find which button is touched.
-                // 어느 버튼을 눌렀는지 구별하기 위한 인덱스를 저장한다.
+                // Save the index to distinguish which button was pressed.
                 clone.AddComponent<CButtonAction>().set(index);
                 ++index;
             }

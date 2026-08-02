@@ -27,7 +27,7 @@ public class CScaleController : MonoBehaviour {
     {
         this.time += Time.deltaTime;
 
-        // 모바일(안드로이드)에서 안먹어서 Vector3.Lerp로 교체함. 원인은 아직 모름.
+        // Replaced with Vector3.Lerp as it doesn't work on mobile (Android). Cause is still unknown.
         //transform.localScale = easing_vector3(this.scale_from, this.scale_to, this.time / this.duration, EasingUtil.easeInQuad);
         transform.localScale = Vector3.Lerp(this.scale_from, this.scale_to, this.time / this.duration);
     }

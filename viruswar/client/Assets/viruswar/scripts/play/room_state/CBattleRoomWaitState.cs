@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 상대방 턴이 진행중이라 대기중인 상태.
+/// Waiting state because opponent's turn is in progress.
 /// </summary>
 public class CBattleRoomWaitState : MonoBehaviour, IState
 {

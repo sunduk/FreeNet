@@ -35,7 +35,7 @@ public class CNetworkManager : CSingletonMonobehaviour<CNetworkManager>
 
     public void connect()
     {
-        // 이전에 보내지 못한 패킷은 모두 버린다.
+        // Discard all packets that were not sent previously.
         this.sending_queue.Clear();
 
         if (!this.freenet.is_connected())
