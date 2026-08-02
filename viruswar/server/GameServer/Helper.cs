@@ -93,8 +93,8 @@ public static class Helper
     {
         var distance = first - second;
 
-        var x = (short)Math.Abs(distance.x);
-        var y = (short)Math.Abs(distance.y);
+        var x = (short)Math.Abs(distance.X);
+        var y = (short)Math.Abs(distance.Y);
 
         // The larger of x and y represents the actual distance between the two positions.
         return Math.Max(x, y);
@@ -119,8 +119,8 @@ public static class Helper
         var cellPos = new Vector2(col, row);
 
         var distance = basicPos - cellPos;
-        var x = (short)Math.Abs(distance.x);
-        var y = (short)Math.Abs(distance.y);
+        var x = (short)Math.Abs(distance.X);
+        var y = (short)Math.Abs(distance.Y);
         return (byte)Math.Max(x, y);
     }
 

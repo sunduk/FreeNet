@@ -42,9 +42,10 @@ internal class RemoteServerPeer : IPeer
             //                break;
             case PacketProtocol.USER_INFO:
                 {
-                    short id = msg.PopInt16();
+                    var id = msg.PopInt16();
                     Console.WriteLine(string.Format("yourid {0}", id));
                 }
+
                 break;
             case PacketProtocol.MOVE_CAST:
                 {
@@ -57,6 +58,7 @@ internal class RemoteServerPeer : IPeer
                     //float r = msg.PopFloat();
                     //Console.WriteLine($"move {userid} {x} {y} {z} {r}");
                 }
+
                 break;
             default:
                 break;

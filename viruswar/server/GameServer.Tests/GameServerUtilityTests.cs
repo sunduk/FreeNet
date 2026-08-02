@@ -126,8 +126,8 @@ public class GameServerUtilityTests
         var blockedCells = Enumerable.Range(1, 48).Select(static n => (short)n).ToArray();
         var blockedOpponent = CreatePlayer(1, blockedCells);
 
-        var canContinue = Helper.CanPlayMore(board, movable, new List<Player> { movable, CreatePlayer(1, 48) });
-        var cannotContinue = Helper.CanPlayMore(board, movable, new List<Player> { movable, blockedOpponent });
+        var canContinue = Helper.CanPlayMore(board, movable, [movable, CreatePlayer(1, 48)]);
+        var cannotContinue = Helper.CanPlayMore(board, movable, [movable, blockedOpponent]);
 
         _ = await Assert.That(canContinue).IsTrue();
         _ = await Assert.That(cannotContinue).IsFalse();
@@ -148,8 +148,8 @@ public class GameServerUtilityTests
     {
         var result = new Vector2(6, 1) - new Vector2(2, 5);
 
-        _ = await Assert.That(result.x).IsEqualTo(4);
-        _ = await Assert.That(result.y).IsEqualTo(-4);
+        _ = await Assert.That(result.X).IsEqualTo(4);
+        _ = await Assert.That(result.Y).IsEqualTo(-4);
     }
 
     [Test]

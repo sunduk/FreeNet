@@ -58,11 +58,11 @@ public class ServiceLifecycleTests
 
         var firstBytes = CreateMessageBytes(100);
         var secondBytes = CreateMessageBytes(200);
-        var queue = new Queue<Packet>(new[]
-        {
+        var queue = new Queue<Packet>(
+        [
             new Packet(new ArraySegment<byte>(firstBytes, 0, firstBytes.Length), inListToken),
             new Packet(new ArraySegment<byte>(secondBytes, 0, secondBytes.Length), skippedToken)
-        });
+        ]);
 
         InvokeInstance(entry, "DispatchAll", [queue]);
 
@@ -112,10 +112,7 @@ public class ServiceLifecycleTests
     {
         var listener = new Listener();
         var accepted = false;
-        listener.CallbackOnNewClient = (socket, _) =>
-        {
-            accepted = socket is not null;
-        };
+        listener.CallbackOnNewClient = (socket, _) => accepted = socket is not null;
 
         SetField(listener, "_flowControlEvent", new AutoResetEvent(false));
 
@@ -163,34 +160,19 @@ public class ServiceLifecycleTests
 
     private static void InvokeInstance(object target, string methodName, object[] arguments)
     {
-        var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
-        if (method is null)
-        {
-            throw new InvalidOperationException($"Missing method: {methodName}");
-        }
-
+        var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException($"Missing method: {methodName}");
         _ = method.Invoke(target, arguments);
     }
 
     private static void SetField(object target, string fieldName, object value)
     {
-        var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-        if (field is null)
-        {
-            throw new InvalidOperationException($"Missing field: {fieldName}");
-        }
-
+        var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException($"Missing field: {fieldName}");
         field.SetValue(target, value);
     }
 
     private static void SetProperty(object target, string propertyName, object value)
     {
-        var property = target.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        if (property is null)
-        {
-            throw new InvalidOperationException($"Missing property: {propertyName}");
-        }
-
+        var property = target.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) ?? throw new InvalidOperationException($"Missing property: {propertyName}");
         property.SetValue(target, value);
     }
 

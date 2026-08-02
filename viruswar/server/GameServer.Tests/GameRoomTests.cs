@@ -15,6 +15,7 @@ public class GameRoomTests
         var threw = false;
         try { room.EnterGameRoom(null!, CreatePlayer(1)); }
         catch (Exception) { threw = true; }
+
         _ = await Assert.That(threw).IsTrue();
     }
 
@@ -25,6 +26,7 @@ public class GameRoomTests
         var threw = false;
         try { room.EnterGameRoom(CreatePlayer(0), null!); }
         catch (Exception) { threw = true; }
+
         _ = await Assert.That(threw).IsTrue();
     }
 
@@ -38,6 +40,7 @@ public class GameRoomTests
         var threw = false;
         try { room.EnterGameRoom(CreatePlayer(0), CreatePlayer(1)); }
         catch (Exception) { threw = true; }
+
         _ = await Assert.That(threw).IsTrue();
     }
 
@@ -223,7 +226,7 @@ public class GameRoomTests
         user.EnterRoom(new GameRoom(new GameRoomManager()), 0);
 
         _ = await Assert.That(user.Player is not null).IsTrue();
-        _ = await Assert.That(user.Player.PlayerIndex).IsEqualTo((byte)0);
+        _ = await Assert.That(user.Player?.PlayerIndex).IsEqualTo((byte)0);
     }
 
     // ---------------------------------------------------------------- helpers --
@@ -235,7 +238,7 @@ public class GameRoomTests
     }
 
     private static Player CreateBoundPlayer(byte index) =>
-        new Player(CreateUserWithBoundToken(), index);
+        new(CreateUserWithBoundToken(), index);
 
     private static GameUser CreateUserWithBoundToken()
     {

@@ -61,22 +61,16 @@ public class ProgramAndServerImplTests
     private static GameUser GetLatestUser()
     {
         var userListField = typeof(Program).GetField("Userlist", BindingFlags.NonPublic | BindingFlags.Static);
-        if (userListField?.GetValue(null) is not List<GameUser> userList || userList.Count == 0)
-        {
-            throw new InvalidOperationException("Unable to read Program user list.");
-        }
-
-        return userList[^1];
+        return userListField?.GetValue(null) is not List<GameUser> userList || userList.Count == 0
+            ? throw new InvalidOperationException("Unable to read Program user list.")
+            : userList[^1];
     }
 
     private static List<GameUser> GetWaitingList(GameServerImpl impl)
     {
         var field = typeof(GameServerImpl).GetField("_matchingWaitingUsers", BindingFlags.NonPublic | BindingFlags.Instance);
-        if (field?.GetValue(impl) is not List<GameUser> waiting)
-        {
-            throw new InvalidOperationException("Unable to read waiting list.");
-        }
-
-        return waiting;
+        return field?.GetValue(impl) is not List<GameUser> waiting
+            ? throw new InvalidOperationException("Unable to read waiting list.")
+            : waiting;
     }
 }

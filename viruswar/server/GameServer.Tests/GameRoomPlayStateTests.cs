@@ -75,12 +75,7 @@ public class GameRoomPlayStateTests
             BindingFlags.Instance | BindingFlags.NonPublic,
             binder: null,
             types: [typeof(byte), typeof(short)],
-            modifiers: null);
-        if (target is null)
-        {
-            throw new InvalidOperationException($"Missing method: {method}");
-        }
-
+            modifiers: null) ?? throw new InvalidOperationException($"Missing method: {method}");
         _ = target.Invoke(state, [playerIndex, position]);
     }
 

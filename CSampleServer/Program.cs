@@ -62,7 +62,7 @@ internal partial class Program
     {
         lock (UserIds)
         {
-            _ = UserIds.Remove(user.Sig, out byte ret);
+            _ = UserIds.Remove(user.Sig, out var ret);
         }
 
         lock (Users)
@@ -75,7 +75,7 @@ internal partial class Program
     {
         foreach (var user in Users)
         {
-            if (UserIds.TryGetValue(user.Sig, out byte ret))
+            if (UserIds.TryGetValue(user.Sig, out var ret))
             {
                 if (ret == 0)
                 {
